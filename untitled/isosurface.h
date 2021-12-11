@@ -210,12 +210,12 @@ class ISOSurface
             pos.y = y+1;
             pos.z = z+1;
             cellsCou++;
-            PolygoniseTri(vertices,val,0,2,3,7,pos,4);
-            PolygoniseTri(vertices,val,0,2,6,7,pos,4);
-            PolygoniseTri(vertices,val,0,4,6,7,pos,4);
-            PolygoniseTri(vertices,val,0,6,1,2,pos,4);
-            PolygoniseTri(vertices,val,0,6,1,4,pos,4);
-            PolygoniseTri(vertices,val,5,6,1,4,pos,4);
+            PolygoniseTri(vertices,val,0,2,3,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,2,6,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,4,6,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,6,1,2,pos,inr_count);
+            PolygoniseTri(vertices,val,0,6,1,4,pos,inr_count);
+            PolygoniseTri(vertices,val,5,6,1,4,pos,inr_count);
             return;
         }
 
