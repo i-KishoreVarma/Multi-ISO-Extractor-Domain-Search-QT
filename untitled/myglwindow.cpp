@@ -16,7 +16,7 @@
 // #define MODEL_FILE_NAME "models/pancreas_240x512x512_int16.raw"
 // #define ISO_VALUE -150
 
-#define MODEL_FILE_NAME "models/bostonteapot_256x256x178_uint8.raw"
+#define MODEL_FILE_NAME "../untitled/models/bostonteapot_256x256x178_uint8.raw"
 #define ISO_VALUE 5
 
 //#define MODEL_FILE_NAME "models/present_492x492x442_uint16.raw"
@@ -139,17 +139,10 @@ void MyGlWindow::setModelFile(QString &fileName)
      */
 
     auto begin = TIME_NOW;
-    // teaPot.marchingTetrahedra(ISO_VALUE);
+    // rawModel.marchingTetrahedra(ISO_VALUE);
     auto end = TIME_NOW;
     cout << "Normal time: " <<
             (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
-
-    /*
-     *  Domain Search Tree Build
-     */
-
-//    rawModel.addISOSurface(0,144);
-//    rawModel.addISOSurface(1,50);
 }
 
 //void MyGlWindow::setModelFile(QString &fileName)

@@ -423,7 +423,7 @@ public:
         meshMode = false;
     }
 
-    ISOSurface(vvvT &Volume,float ISOValueIn = 10.5) : ISOValue(ISOValueIn)
+    ISOSurface(vvvT &Volume,float ISOValueIn = 0,bool useISOValueIn=false) : ISOValue(ISOValueIn)
     {
         volume = &Volume;
         z = Volume.size();
@@ -445,7 +445,7 @@ public:
         vbo.unbind();
         vio.unbind();
 
-        setISOValue(ISOValueIn);
+        setISOValue(ISOValueIn,useISOValueIn);
     }
 
     float getISOvalue()
@@ -453,10 +453,16 @@ public:
         return ISOValue;
     }
 
-    void setISOValue(float ISOValueIn)
+    void setISOValue(float ISOValueIn,bool useISOValueIn=true)
     {
-        ISOValue = ISOValueIn;
+        // build minmax tree
         build();
+        if(useISOValueIn) ISOValue = ISOValueIn;
+        else
+        {
+            auto tmpMinMax = getMinMax();
+            ISOValue = (tmpMinMax.first+tmpMinMax.second)/2;
+        }
         marchingTetrahedraDomainSearch();
     }
 

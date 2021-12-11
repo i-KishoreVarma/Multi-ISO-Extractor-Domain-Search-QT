@@ -200,11 +200,11 @@ class RawModel
             return 0;
         }
 
-        void addISOSurface(int i,float val)
+        void addISOSurface(int i,float ISOValueIn = 0 ,bool useISOValueIn=false)
         {
             auto it = isoSurfaces.find(i);
             if(it!=isoSurfaces.end()) return;
-            isoSurfaces[i] = ISOSurface(volume,val);
+            isoSurfaces[i] = ISOSurface(volume,ISOValueIn,useISOValueIn);
         }
 
         void removeISOSurface(int i)
