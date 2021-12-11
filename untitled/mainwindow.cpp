@@ -66,11 +66,13 @@ void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
 
+    QTimer::singleShot(300, [=]() { updateU(position); } );
+    /*
     timer = new QTimer(this);
     QObject::connect(timer, &QTimer::timeout, [=]() {
         updateU(position);
    });
-    timer->start(1000);
+    timer->start(5000);*/
 }
 
 void MainWindow::on_ISOValue_sliderPressed()
@@ -86,7 +88,7 @@ void MainWindow::on_ISOValue_sliderReleased()
 
     auto val = ui->ISOValue->value();
     ui->label->setText("Started  "+QString::number(val));
-    isoSurface->setISOValue(val,true,true);
+    isoSurface->setISOValue(val,true,false);
     ui->label->setText("Done "+QString::number(val));
     ui->openGLWidget->repaint();
 }
