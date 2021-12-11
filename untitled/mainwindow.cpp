@@ -65,12 +65,12 @@ void MainWindow::updateU(int position)
 void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
-    /*
+
     timer = new QTimer(this);
     QObject::connect(timer, &QTimer::timeout, [=]() {
         updateU(position);
    });
-    timer->start(1000);*/
+    timer->start(1000);
 }
 
 void MainWindow::on_ISOValue_sliderPressed()
