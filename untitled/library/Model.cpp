@@ -189,21 +189,21 @@ void Model::readModel(const string &fileName)
 void Model::render(function<void(Shader&)> f)
 {
     shader.bind();
-//    vao.bind();
+    vao.bind();
     vbo.bind();
     vio.bind();
 
     f(shader);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+//    glEnableVertexAttribArray(0);
 
     if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawElements(mode,indices.size(),GL_UNSIGNED_INT,0);
     if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     ErrorHandler();
-//    vao.unbind();
+    vao.unbind();
     vbo.unbind();
     vio.unbind();
 

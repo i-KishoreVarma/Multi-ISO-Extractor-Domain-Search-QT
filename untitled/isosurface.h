@@ -416,16 +416,22 @@ public:
     {
         vbo.bind();
         vio.bind();
-//        vao.bind();
+
+        // VAO Binding Causing Issue
+        // vao.bind();
 
         f();
+
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
         if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArrays(GL_TRIANGLES,0,vertices.size());
         if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
         ErrorHandler();
-//        vao.unbind();
+
+        // vao.unbind();
         vbo.unbind();
         vio.unbind();
     }

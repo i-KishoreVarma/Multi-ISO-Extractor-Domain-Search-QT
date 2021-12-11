@@ -25,7 +25,7 @@ void MainWindow::on_actionOpen_File_triggered()
 {
     auto fileName = QFileDialog::getOpenFileName(this,
                                  tr("Open File"),
-                                 "",
+                                 "../untitled/models/",
                                  "All Files (*.*);;OFF file (*.off)");
     ui->openGLWidget->setModelFile(fileName);
     ui->openGLWidget->modelAvailable = true;
@@ -62,17 +62,14 @@ void MainWindow::computeRunTimeISO(int position)
     isoSurface->setISOValue(position,true,true);
     ui->openGLWidget->repaint();
 }
+
+
 void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
 
-    QTimer::singleShot(300, [=]() { computeRunTimeISO(position); } );
-    /*
-    timer = new QTimer(this);
-    QObject::connect(timer, &QTimer::timeout, [=]() {
-        updateU(position);
-   });
-    timer->start(5000);*/
+    QTimer::singleShot(500, [=]() { computeRunTimeISO(position); } );
+
 }
 
 void MainWindow::on_ISOValue_sliderPressed()

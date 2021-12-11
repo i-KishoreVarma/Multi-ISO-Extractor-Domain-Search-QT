@@ -5,22 +5,9 @@
 #include "library/Camera.h"
 #include "library/MyLibrary.h"
 
-//#include "RawModel.h"
 #include <QWidget>
 
-#define DEBUG 1
-//#define BOUNDING_CUBE "models/sphere.off"
-//#define BOUNDING_CUBE "models/1grm.off"
 #define BOUNDING_CUBE "../untitled/models/cube.off"
-
-// #define MODEL_FILE_NAME "models/pancreas_240x512x512_int16.raw"
-// #define ISO_VALUE -150
-
-#define MODEL_FILE_NAME "../untitled/models/bostonteapot_256x256x178_uint8.raw"
-#define ISO_VALUE 5
-
-//#define MODEL_FILE_NAME "models/present_492x492x442_uint16.raw"
-//#define ISO_VALUE 1000
 
 unordered_map<string, Model> models;
 
@@ -47,53 +34,6 @@ void MyGlWindow::initCubeModel()
     model.meshMode = true;
 }
 
-void MyGlWindow::initRawModel()
-{
-    rawModel.create("Tea Pot",MODEL_FILE_NAME,true);
-
-    /*
-     *  if you want enable mesh mode, then uncomment below
-     *
-     *     teaPot.meshMode = true;
-     */
-
-    /*
-     *  Marching Tetrahedra using 4 Threads
-     *  Need to Uncomment code in RawModel as well
-     */
-
-    auto begin = TIME_NOW;
-    // teaPot.marchingTetrahedra(ISO_VALUE);
-    auto end = TIME_NOW;
-    cout << "Normal time: " <<
-            (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
-
-    /*
-     *  Domain Search Tree Build
-     */
-
-    rawModel.addISOSurface(0,144);
-    rawModel.addISOSurface(1,50);
-
-//    begin = TIME_NOW;
-//    rawModel.build();
-//    end = TIME_NOW;
-//    cout << "Build time: " <<
-//            (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
-
-//    /*
-//     *  Marching Tetrahedra using Domain Search
-//     */
-
-//    begin = TIME_NOW;
-//    rawModel.marchingTetrahedraDomainSearch(ISO_VALUE);
-//    end = TIME_NOW;
-
-//    cout << "Optimized execution time: " <<
-//            (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
-
-}
-
 void MyGlWindow::initializeGL()
 {
     setMouseTracking(false);
@@ -118,13 +58,6 @@ void MyGlWindow::initializeGL()
     initShaders();
 
     initCubeModel();
-
-    /* For Debugging (Checking whether models is working or not) */
-    #ifdef DEBUG
-
-//        initRawModel();
-//        modelAvailable = true;
-    #endif
 
     /* To Enable interactivity in OpenGL Widget, set Focus Policy */
     setFocusPolicy(Qt::StrongFocus);
