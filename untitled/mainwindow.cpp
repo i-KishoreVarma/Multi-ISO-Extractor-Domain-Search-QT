@@ -93,8 +93,7 @@ void MainWindow::on_addISOButton_clicked()
 {
     ui->ISOSurfacesList->addItem("ISO Surface "+QString::number(windowState.nextISOSurfaceID));
     auto &rawModel = ui->openGLWidget->rawModel;
-    auto x = rawModel.getMinMaxValues();
-    rawModel.addISOSurface(windowState.nextISOSurfaceID++,(x.first+x.second)/2);
+    rawModel.addISOSurface(windowState.nextISOSurfaceID++);
 }
 
 
