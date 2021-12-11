@@ -23,13 +23,19 @@
 //#define ISO_VALUE 1000
 
 unordered_map<string, Model> models;
-Shader commonShader;
 
-void initCommonShader()
+Shader commonShader;
+Shader mainShader;
+
+void initShaders()
 {
-    commonShader.add("../untitled/shaders/shader.vs",GL_VERTEX_SHADER);
-    commonShader.add("../untitled/shaders/shader.fs",GL_FRAGMENT_SHADER);
+    commonShader.add("../untitled/shaders/commonShader.vs",GL_VERTEX_SHADER);
+    commonShader.add("../untitled/shaders/commonShader.fs",GL_FRAGMENT_SHADER);
     commonShader.compile();
+
+    mainShader.add("../untitled/shaders/mainShader.vs",GL_VERTEX_SHADER);
+    mainShader.add("../untitled/shaders/mainShader.fs",GL_FRAGMENT_SHADER);
+    mainShader.compile();
 }
 
 
@@ -109,11 +115,13 @@ void MyGlWindow::initializeGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     /* init Common Shader for all model use */
-    initCommonShader();
+    initShaders();
+
+    initCubeModel();
 
     /* For Debugging (Checking whether models is working or not) */
     #ifdef DEBUG
-        initCubeModel();
+
 //        initRawModel();
 //        modelAvailable = true;
     #endif
@@ -145,20 +153,6 @@ void MyGlWindow::setModelFile(QString &fileName)
             (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
 }
 
-//void MyGlWindow::setModelFile(QString &fileName)
-//{
-//    auto &model = models["cube"];
-
-//    /* Informing Vertex that Model File has  only VertexPosition Info */
-//    Vertex::vertexType = MyLibrary::VertexPosition;
-
-//    model.create("cube", fileName.toStdString(),true,true,GL_TRIANGLES);
-
-//    /* Want to view mesh */
-//    model.meshMode = true;
-//}
-
-
 
 void MyGlWindow::paintGL()
 {
@@ -177,10 +171,34 @@ void MyGlWindow::paintGL()
 
     cubeModel.World = projection * view * glm::translate(glm::vec3(-0.5,-0.5,-0.5)) ;
 
-    cubeModel.render();
+    cubeModel.render([&](Shader& shader){
+
+        /*
+         *  Shader is already binded
+         *
+         *  Just set all uniforms
+         *
+         */
+
+        shader.setUniformMat4f("mvp",cubeModel.World);
+
+    });
 
     rawModel.World = projection * view * glm::translate(glm::vec3(-0.5,-0.5,-0.5));
 
-    rawModel.render();
+    rawModel.render([&](Shader& shader){
+
+        /*
+         *  Shader is already binded
+         *
+         *  Just set all uniforms
+         *
+         */
+
+        shader.setUniformMat4f("mvp",rawModel.World);
+
+        /* Per ISO Surface Properties need to be set in Render Funcion */
+
+    });
 
 }

@@ -357,8 +357,7 @@ class RawModel
         void create(const string &modelName,const string &modelPath,bool useCommonShader = true)
         {
             name = modelName;
-            shouldUseCommonShader = useCommonShader;
-            if(shouldUseCommonShader) shader = commonShader;
+            shader = mainShader;
             loadModel(modelPath);
             build();
             buildSample(isoSkipValue);
@@ -367,20 +366,24 @@ class RawModel
         void render(function<void(Shader&)> f=[](Shader &shader){})
         {
             shader.bind();
-            shader.setUniformMat4f("gWorld",World);
+
+            f(shader);
+
             for(auto &surfacePair:isoSurfaces)
             {
                 auto &surface = surfacePair.second;
+
+                /*
+                 *  For each property of ISOSurface That needs to be passed to mainShader
+                 */
+
                 shader.setUniform1i("opacity",surface.opacity);
+
                 if(surface.shouldDisplay)
                     surface.render();
             }
-            shader.unbind();
-        }
 
-        pTT getMinMaxValues()
-        {
-            return {0,255};
+            shader.unbind();
         }
 
         ISOSurface* getISOSurface(int i)

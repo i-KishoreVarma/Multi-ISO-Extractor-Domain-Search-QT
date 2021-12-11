@@ -64,6 +64,7 @@ DISTFILES += \
     models/sphere.off \
     models/square.off \
     models/world.off \
-    shaders/shader.fs \
-    shaders/shader.vs \
-    shaders/shader1.vs
+    shaders/commonShader.fs \
+    shaders/commonShader.vs \
+    shaders/mainShader.fs \
+    shaders/mainShader.vs
