@@ -162,8 +162,8 @@ class RawModel
 
             ISODataType allMin =   INT_MAX;
             ISODataType allMax =   INT_MIN;
-            vvvpTT curMinMaxData(z - inr_count, vvpTT(y - inr_count, vpTT(x - inr_count)));
-            //vvvpTT curMinMaxData(ceil(z/(1.0*inr_count))-1, vvpTT(ceil(y/(1.0*inr_count))-1, vpTT(ceil(x/(1.0*inr_count))-1)));
+            //vvvpTT curMinMaxData(z - inr_count, vvpTT(y - inr_count, vpTT(x - inr_count)));
+            vvvpTT curMinMaxData(ceil(z/(1.0*inr_count))-1, vvpTT(ceil(y/(1.0*inr_count))-1, vpTT(ceil(x/(1.0*inr_count))-1)));
             for (int i = inr_count,ii=0; i < z; i+=inr_count,ii++)
             {
                 for (int j = inr_count,jj=0; j < y; j+=inr_count,jj++)
@@ -183,7 +183,7 @@ class RawModel
                                 cur_max = max((volume)[zz][yy][xx], cur_max);
                             }
                         }
-                        curMinMaxData[i-inr_count][j-inr_count][k-inr_count] = {cur_min, cur_max};
+                        curMinMaxData[ii][jj][kk] = {cur_min, cur_max};
                     }
                 }
             }
