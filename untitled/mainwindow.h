@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QListWidgetItem>
+#include <QTimer>
 #include "WindowState.h"
 
 QT_BEGIN_NAMESPACE
@@ -17,10 +18,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     WindowState windowState;
+    QTimer* timer;
     void updateProperties(int i);
+
 
 private slots:
     void on_actionOpen_File_triggered();
+
 
     void on_ISOValue_sliderMoved(int position);
 
@@ -36,7 +40,8 @@ private slots:
     void on_addISOButton_clicked();
 
     void on_deleteISOButton_clicked();
-
+public slots:
+    void updateU(int position);
 private:
     Ui::MainWindow *ui;
 };

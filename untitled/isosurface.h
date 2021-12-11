@@ -26,9 +26,11 @@ class ISOSurface
     int x,y,z;
 
     vvvT *volume = 0;
+
+    int isoSkipValue=1;
     
     /* Domain Search Tree */
-    vector<vvvpTT> minmaxData;
+    vector<vvvpTT> *minmaxData = 0,*minmaxDataSample = 0;
 
     /* Active Cells Info */
     int cellsCou = 0;
@@ -47,115 +49,26 @@ class ISOSurface
     bool meshMode;
 
     int inr_count = 1;
-    /* Adjacent Cells Info */
-    int ttxyz[8][3] = {
-            {0, 0 - inr_count, 0 - inr_count},
-            {0, 0, 0 - inr_count},
-            {0, 0, 0},
-            {0, 0 - inr_count, 0},
-            {0 - inr_count, 0 - inr_count, 0 - inr_count},
-            {0 - inr_count, 0, 0 - inr_count},
-            {0 - inr_count, 0, 0},
-            {0 - inr_count, 0 - inr_count, 0}
-    };
 
-    vector<glm::vec3> txyz = {
-                {0,0-inr_count,0-inr_count},
-                {0,0,0-inr_count},
-                {0,0,0},
-                {0,0-inr_count,0},
-                {0-inr_count,0-inr_count,0-inr_count},
-                {0-inr_count,0,0-inr_count},
-                {0-inr_count,0,0},
-                {0-inr_count,0-inr_count,0}
-    };
+
+
 
     /* Checks for validity of access */
-    bool isvalid(int xx, int yy, int zz)
-    {
-        if (xx >= 0 && xx < x && yy >= 0 && yy < y && zz >= 0 && zz < z)
-            return true;
-        return false;
-    }
 
-
-    void build()
-    {
-        /*
-        *  If Float is preferred then use below
-        *
-        *  ISODataType allMin = + numeric_limits<ISODataType>::max();
-        *  ISODataType allMax = - numeric_limits<ISODataType>::max();
-        *
-        */
-
-        // clear previous contents
-        minmaxData.clear();
-
-        ISODataType allMin =   INT_MAX;
-        ISODataType allMax =   INT_MIN;
-        vvvpTT curMinMaxData(z - 1, vvpTT(y - 1, vpTT(x - 1)));
-        for (int i = 1; i < z; i++)
-        {
-            for (int j = 1; j < y; j++)
-            {
-                for (int k = 1; k < x; k++)
-                {
-                    ISODataType cur_min = allMin;
-                    ISODataType cur_max = allMax;
-                    for (auto &adjCell : ttxyz)
-                    {
-                        int zz = i + adjCell[0];
-                        int yy = j + adjCell[1];
-                        int xx = k + adjCell[2];
-                        if (isvalid(xx, yy, zz))
-                        {
-                            cur_min = min((*volume)[zz][yy][xx], cur_min);
-                            cur_max = max((*volume)[zz][yy][xx], cur_max);
-                        }
-                    }
-                    curMinMaxData[i - 1][j - 1][k - 1] = {cur_min, cur_max};
-                }
-            }
-        }
-        minmaxData.emplace_back(vvvpTT());
-        minmaxData.back().swap(curMinMaxData);
-        while (1)
-        {
-            auto &prev = minmaxData.back();
-            int zSize = prev.size();
-            int ySize = prev[0].size();
-            int xSize = prev[0][0].size();
-            int newZSize = (zSize + 1) / 2;
-            int newYSize = (ySize + 1) / 2;
-            int newXSize = (xSize + 1) / 2;
-
-            if (zSize == 1 && ySize == 1 && xSize == 1)
-                break;
-
-            curMinMaxData.resize(newZSize, vvpTT(newYSize, vpTT(newXSize, make_pair(allMin, allMax))));
-            for (int i = 0; i < zSize; i++)
-            {
-                for (int j = 0; j < ySize; j++)
-                {
-                    for (int k = 0; k < xSize; k++)
-                    {
-                        auto &data = curMinMaxData[i >> 1][j >> 1][k >> 1];
-                        data.first = min(data.first, prev[i][j][k].first);
-                        data.second = max(data.second, prev[i][j][k].second);
-                    }
-                }
-            }
-            minmaxData.emplace_back(vvvpTT());
-            minmaxData.back().swap(curMinMaxData);
-        }
-    }
-
-    void  PolygoniseTri(vector<Vertex> &vertices,int iso,int v0,int v1,int v2,int v3,glm::vec3 &pos)
+    void  PolygoniseTri(vector<Vertex> &vertices,int iso,int v0,int v1,int v2,int v3,glm::vec3 &pos,int inr_count)
     {
         int ntri = 0;
         int triindex;
-
+        vector<glm::vec3> txyz = {
+                    {0,0-inr_count,0-inr_count},
+                    {0,0,0-inr_count},
+                    {0,0,0},
+                    {0,0-inr_count,0},
+                    {0-inr_count,0-inr_count,0-inr_count},
+                    {0-inr_count,0,0-inr_count},
+                    {0-inr_count,0,0},
+                    {0-inr_count,0-inr_count,0}
+        };
         /*
             Determine which of the 16 cases we have given which vertices
             are above or below the isosurface
@@ -271,13 +184,18 @@ class ISOSurface
         return p;
     }
 
-    void getCells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val)
+    void getCells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val,vector<vvvpTT> &mnmxData,bool useSample)
     {
+        if(useSample)
+            inr_count = isoSkipValue;
+        else
+            inr_count = 1;
 
-        if (!(level >= 0 && level < minmaxData.size()))
+        if (!(level >= 0 && level < mnmxData.size()))
             return;
+
         
-        auto &curMinMaxLevel = minmaxData[level];
+        auto &curMinMaxLevel = mnmxData[level];
         
         if(!(0<=z&&z<curMinMaxLevel.size()&&0<=y&&y<curMinMaxLevel[0].size()&&0<=x&&x<curMinMaxLevel[0][0].size()))
             return;
@@ -291,16 +209,16 @@ class ISOSurface
         if(level==0)
         {
             glm::vec3 pos;
-            pos.x = x+1;
-            pos.y = y+1;
-            pos.z = z+1;
+            pos.x = (x+1)*inr_count;
+            pos.y = (y+1)*inr_count;
+            pos.z = (z+1)*inr_count;
             cellsCou++;
-            PolygoniseTri(vertices,val,0,2,3,7,pos);
-            PolygoniseTri(vertices,val,0,2,6,7,pos);
-            PolygoniseTri(vertices,val,0,4,6,7,pos);
-            PolygoniseTri(vertices,val,0,6,1,2,pos);
-            PolygoniseTri(vertices,val,0,6,1,4,pos);
-            PolygoniseTri(vertices,val,5,6,1,4,pos);
+            PolygoniseTri(vertices,val,0,2,3,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,2,6,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,4,6,7,pos,inr_count);
+            PolygoniseTri(vertices,val,0,6,1,2,pos,inr_count);
+            PolygoniseTri(vertices,val,0,6,1,4,pos,inr_count);
+            PolygoniseTri(vertices,val,5,6,1,4,pos,inr_count);
             return;
         }
 
@@ -312,11 +230,11 @@ class ISOSurface
             xx = x2 + ((i&1)>>0); 
             yy = y2 + ((i&2)>>1); 
             zz = z2 + ((i&4)>>2);
-            getCells(nextLevel,zz,yy,xx,val); 
+            getCells(nextLevel,zz,yy,xx,val,mnmxData,useSample);
         }
     }
 
-    void marchingTetrahedraDomainSearch()
+    void marchingTetrahedraDomainSearch(bool useSample)
     {
         // initialize cells to 0
         cellsCou = 0;
@@ -325,7 +243,10 @@ class ISOSurface
         vertices.clear();
 
         // get All cells corresponding to given ISO Value
-        getCells(int(minmaxData.size())-1,0,0,0,ISOValue);
+        if(useSample)
+            getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
+        else
+            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
         
         vao.bind();
         vbo.bind();
@@ -423,8 +344,14 @@ public:
         meshMode = false;
     }
 
-    ISOSurface(vvvT &Volume,float ISOValueIn = 0,bool useISOValueIn=false) : ISOValue(ISOValueIn)
+    ISOSurface(vvvT &Volume,vector<vvvpTT> &mnmxData,vector<vvvpTT> &mnmxDataSample,float ISOValueIn = 0,bool useISOValueIn=false,int isoSkipValue=4) : ISOValue(ISOValueIn)
     {
+        minmaxData = &mnmxData;
+        minmaxDataSample = &mnmxDataSample;
+
+        this->isoSkipValue = isoSkipValue;
+
+        cout<<(*minmaxData).size()<<" "<<(*minmaxDataSample).size()<<"\n";
         volume = &Volume;
         z = Volume.size();
         y = Volume[0].size();
@@ -453,17 +380,16 @@ public:
         return ISOValue;
     }
 
-    void setISOValue(float ISOValueIn,bool useISOValueIn=true)
+    void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=false)
     {
         // build minmax tree
-        build();
         if(useISOValueIn) ISOValue = ISOValueIn;
         else
         {
-            auto tmpMinMax = getMinMax();
+            auto tmpMinMax = getMinMax(useSample);
             ISOValue = (tmpMinMax.first+tmpMinMax.second)/2;
         }
-        marchingTetrahedraDomainSearch();
+        marchingTetrahedraDomainSearch(useSample);
     }
 
     int getOpacity()
@@ -476,9 +402,13 @@ public:
         opacity = opacityIn;
     }
 
-    pTT getMinMax()
+    pTT getMinMax(bool useSample=false)
     {
-        auto pr = minmaxData.back().back().back().back();
+        if(useSample){
+            auto pr = (*minmaxDataSample).back().back().back().back();
+            return pr;
+        }
+        auto pr = (*minmaxData).back().back().back().back();
         return pr;
     }
     
