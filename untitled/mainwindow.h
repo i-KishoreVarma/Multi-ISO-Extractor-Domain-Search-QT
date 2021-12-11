@@ -41,7 +41,7 @@ private slots:
 
     void on_deleteISOButton_clicked();
 public slots:
-    void updateU(int position);
+    void computeRunTimeISO(int position);
 private:
     Ui::MainWindow *ui;
 };

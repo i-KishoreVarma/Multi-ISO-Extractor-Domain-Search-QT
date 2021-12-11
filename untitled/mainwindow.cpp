@@ -52,7 +52,7 @@ void MainWindow::updateProperties(int i)
     ui->opacityValue->setValue(isoSurface->getOpacity());
 }
 
-void MainWindow::updateU(int position)
+void MainWindow::computeRunTimeISO(int position)
 {
     int id = windowState.getCurISOSurfaceID();
     auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
@@ -66,7 +66,7 @@ void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
 
-    QTimer::singleShot(300, [=]() { updateU(position); } );
+    QTimer::singleShot(300, [=]() { computeRunTimeISO(position); } );
     /*
     timer = new QTimer(this);
     QObject::connect(timer, &QTimer::timeout, [=]() {
