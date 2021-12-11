@@ -26,7 +26,6 @@ private:
     /* For debugging */
 
     void initCubeModel();
-    void initRawModel();
 
 public:
     RawModel rawModel;

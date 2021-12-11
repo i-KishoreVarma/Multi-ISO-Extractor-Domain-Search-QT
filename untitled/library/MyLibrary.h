@@ -232,4 +232,5 @@ public:
 };
 
 extern Shader commonShader;
+extern Shader mainShader;
 #endif

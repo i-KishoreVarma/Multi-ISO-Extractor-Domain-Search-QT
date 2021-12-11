@@ -40,7 +40,6 @@ Model::Model(const string &modelName):name(modelName),vao(),vbo(),vio(),shader()
     mode = GL_TRIANGLES;
     meshMode = false;
     shouldNormalize = true;
-    shouldUseCommonShader = true;
 }
 
 Model::Model(const string &modelName,const string &modelPath,bool useCommonShader,bool normalize,GLenum renderMode):name(modelName),vao(),vbo(),vio(),shader()
@@ -54,8 +53,7 @@ void Model::create(const string &modelName,const string &modelPath,bool useCommo
     name = modelName;
     meshMode = false; 
     shouldNormalize = normalize;
-    shouldUseCommonShader = useCommonShader;
-    if(shouldUseCommonShader) shader = commonShader;
+    shader = commonShader;
     mode = renderMode;
     vao.create();
     vbo.create();
@@ -190,25 +188,26 @@ void Model::readModel(const string &fileName)
 
 void Model::render(function<void(Shader&)> f)
 {
-//    vao.bind();
+    shader.bind();
+    vao.bind();
     vbo.bind();
     vio.bind();
-    if(shouldUseCommonShader)
-    {
-        shader.bind();
-        shader.setUniformMat4f("gWorld",World);
-        shader.setUniform1i("opacity",100);
-    }
-    else f(shader);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+
+    f(shader);
+
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+//    glEnableVertexAttribArray(0);
+
     if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawElements(mode,indices.size(),GL_UNSIGNED_INT,0);
     if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     ErrorHandler();
-//    vao.unbind();
+    vao.unbind();
     vbo.unbind();
     vio.unbind();
+
+    shader.unbind();
 }
 
 Model::~Model()
