@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QtDebug>
 #include <QListWidgetItem>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -51,10 +52,26 @@ void MainWindow::updateProperties(int i)
     ui->opacityValue->setValue(isoSurface->getOpacity());
 }
 
-
+void MainWindow::updateU(int position)
+{
+    int id = windowState.getCurISOSurfaceID();
+    auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+    if(isoSurface==0) return;
+    auto val = ui->ISOValue->value();
+    ui->label->setText("Started  "+QString::number(val));
+    isoSurface->setISOValue(position,true,true);
+    ui->openGLWidget->repaint();
+}
 void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
+
+    /*
+    timer = new QTimer(this);
+    QObject::connect(timer, &QTimer::timeout, [=]() {
+        updateU(position);
+   });
+    timer->start(1000);*/
 }
 
 void MainWindow::on_ISOValue_sliderPressed()
