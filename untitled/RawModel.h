@@ -15,6 +15,8 @@ namespace fs = std::filesystem;
 #define TIME_NOW std::chrono::high_resolution_clock::now()
 #define TIME_DIFF(gran, start, end) std::chrono::duration_cast<gran>(end - start).count()
 
+
+
 typedef int ISODataType;
 
 typedef pair<ISODataType, ISODataType> pTT;
@@ -31,6 +33,7 @@ typedef vector<vvpTT> vvvpTT;
 
 class RawModel
 {
+
     private:
         // Dimensions of Volume
         int x,y,z;
@@ -336,6 +339,9 @@ class RawModel
         GLenum mode;
         bool shouldUseCommonShader;
         
+
+        // Sampling
+        int isoSkipValue = 4;
         glm::mat4 World;
 
         RawModel(const string &modelName="myModel")
@@ -354,6 +360,8 @@ class RawModel
             shouldUseCommonShader = useCommonShader;
             if(shouldUseCommonShader) shader = commonShader;
             loadModel(modelPath);
+            build();
+            buildSample(isoSkipValue);
         }
 
         void render(function<void(Shader&)> f=[](Shader &shader){})
@@ -386,9 +394,7 @@ class RawModel
         {
             auto it = isoSurfaces.find(i);
             if(it!=isoSurfaces.end()) return;
-            build();
-            buildSample(4);
-            isoSurfaces[i] = ISOSurface(volume,minmaxData,minmaxDataSample,ISOValueIn,useISOValueIn);
+            isoSurfaces[i] = ISOSurface(volume,minmaxData,minmaxDataSample,ISOValueIn,useISOValueIn,isoSkipValue);
         }
 
         void removeISOSurface(int i)

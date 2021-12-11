@@ -26,6 +26,8 @@ class ISOSurface
     int x,y,z;
 
     vvvT *volume = 0;
+
+    int isoSkipValue=1;
     
     /* Domain Search Tree */
     vector<vvvpTT> *minmaxData = 0,*minmaxDataSample = 0;
@@ -185,14 +187,15 @@ class ISOSurface
     void getCells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val,vector<vvvpTT> &mnmxData,bool useSample)
     {
         if(useSample)
-            inr_count = 4;
+            inr_count = isoSkipValue;
         else
             inr_count = 1;
-        if (!(level >= 0 && !useSample && level < (*minmaxDataSample).size()))
+
+        if (!(level >= 0 && level < mnmxData.size()))
             return;
 
         
-        auto &curMinMaxLevel = (*minmaxDataSample)[level];
+        auto &curMinMaxLevel = mnmxData[level];
         
         if(!(0<=z&&z<curMinMaxLevel.size()&&0<=y&&y<curMinMaxLevel[0].size()&&0<=x&&x<curMinMaxLevel[0][0].size()))
             return;
@@ -206,9 +209,9 @@ class ISOSurface
         if(level==0)
         {
             glm::vec3 pos;
-            pos.x = x+1;
-            pos.y = y+1;
-            pos.z = z+1;
+            pos.x = (x+1)*inr_count;
+            pos.y = (y+1)*inr_count;
+            pos.z = (z+1)*inr_count;
             cellsCou++;
             PolygoniseTri(vertices,val,0,2,3,7,pos,inr_count);
             PolygoniseTri(vertices,val,0,2,6,7,pos,inr_count);
@@ -240,10 +243,10 @@ class ISOSurface
         vertices.clear();
 
         // get All cells corresponding to given ISO Value
-        //if(useSample)
+        if(useSample)
             getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
-        //else
-            //getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
+        else
+            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
         
         vao.bind();
         vbo.bind();
@@ -341,10 +344,13 @@ public:
         meshMode = false;
     }
 
-    ISOSurface(vvvT &Volume,vector<vvvpTT> &mnmxData,vector<vvvpTT> &mnmxDataSample,float ISOValueIn = 0,bool useISOValueIn=false) : ISOValue(ISOValueIn)
+    ISOSurface(vvvT &Volume,vector<vvvpTT> &mnmxData,vector<vvvpTT> &mnmxDataSample,float ISOValueIn = 0,bool useISOValueIn=false,int isoSkipValue=4) : ISOValue(ISOValueIn)
     {
         minmaxData = &mnmxData;
         minmaxDataSample = &mnmxDataSample;
+
+        this->isoSkipValue = isoSkipValue;
+
         cout<<(*minmaxData).size()<<" "<<(*minmaxDataSample).size()<<"\n";
         volume = &Volume;
         z = Volume.size();
@@ -366,7 +372,7 @@ public:
         vbo.unbind();
         vio.unbind();
 
-        setISOValue(ISOValueIn,useISOValueIn,true);
+        setISOValue(ISOValueIn,useISOValueIn);
     }
 
     float getISOvalue()
@@ -374,13 +380,13 @@ public:
         return ISOValue;
     }
 
-    void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=true)
+    void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=false)
     {
         // build minmax tree
         if(useISOValueIn) ISOValue = ISOValueIn;
         else
         {
-            auto tmpMinMax = getMinMax();
+            auto tmpMinMax = getMinMax(useSample);
             ISOValue = (tmpMinMax.first+tmpMinMax.second)/2;
         }
         marchingTetrahedraDomainSearch(useSample);
@@ -396,8 +402,12 @@ public:
         opacity = opacityIn;
     }
 
-    pTT getMinMax()
+    pTT getMinMax(bool useSample=false)
     {
+        if(useSample){
+            auto pr = (*minmaxDataSample).back().back().back().back();
+            return pr;
+        }
         auto pr = (*minmaxData).back().back().back().back();
         return pr;
     }

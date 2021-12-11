@@ -65,7 +65,6 @@ void MainWindow::updateU(int position)
 void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
-
     /*
     timer = new QTimer(this);
     QObject::connect(timer, &QTimer::timeout, [=]() {
@@ -87,7 +86,7 @@ void MainWindow::on_ISOValue_sliderReleased()
 
     auto val = ui->ISOValue->value();
     ui->label->setText("Started  "+QString::number(val));
-    isoSurface->setISOValue(val);
+    isoSurface->setISOValue(val,true,true);
     ui->label->setText("Done "+QString::number(val));
     ui->openGLWidget->repaint();
 }
