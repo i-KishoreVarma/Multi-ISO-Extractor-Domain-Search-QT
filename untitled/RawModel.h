@@ -56,90 +56,7 @@ class RawModel
         }
 
         // Build the minmax data
-        void build()
-        {
-            /*
-            *  If Float is preferred then use below
-            *
-            *  ISODataType allMin = + numeric_limits<ISODataType>::max();
-            *  ISODataType allMax = - numeric_limits<ISODataType>::max();
-            *
-            */
-            /* Adjacent Cells Info */
-            int ttxyz[8][3] = {
-                    {0, 0 - inr_count, 0 - inr_count},
-                    {0, 0, 0 - inr_count},
-                    {0, 0, 0},
-                    {0, 0 - inr_count, 0},
-                    {0 - inr_count, 0 - inr_count, 0 - inr_count},
-                    {0 - inr_count, 0, 0 - inr_count},
-                    {0 - inr_count, 0, 0},
-                    {0 - inr_count, 0 - inr_count, 0}
-            };
-            // clear previous contents
-            minmaxData.clear();
-
-            ISODataType allMin =   INT_MAX;
-            ISODataType allMax =   INT_MIN;
-            vvvpTT curMinMaxData(z - 1, vvpTT(y - 1, vpTT(x - 1)));
-            for (int i = 1; i < z; i++)
-            {
-                for (int j = 1; j < y; j++)
-                {
-                    for (int k = 1; k < x; k++)
-                    {
-                        ISODataType cur_min = allMin;
-                        ISODataType cur_max = allMax;
-                        for (auto &adjCell : ttxyz)
-                        {
-                            int zz = i + adjCell[0];
-                            int yy = j + adjCell[1];
-                            int xx = k + adjCell[2];
-                            if (isvalid(xx, yy, zz))
-                            {
-                                cur_min = min((volume)[zz][yy][xx], cur_min);
-                                cur_max = max((volume)[zz][yy][xx], cur_max);
-                            }
-                        }
-                        curMinMaxData[i - 1][j - 1][k - 1] = {cur_min, cur_max};
-                    }
-                }
-            }
-            minmaxData.emplace_back(vvvpTT());
-            minmaxData.back().swap(curMinMaxData);
-            while (1)
-            {
-                auto &prev = minmaxData.back();
-                int zSize = prev.size();
-                int ySize = prev[0].size();
-                int xSize = prev[0][0].size();
-                int newZSize = (zSize + 1) / 2;
-                int newYSize = (ySize + 1) / 2;
-                int newXSize = (xSize + 1) / 2;
-
-                if (zSize == 1 && ySize == 1 && xSize == 1)
-                    break;
-
-                curMinMaxData.resize(newZSize, vvpTT(newYSize, vpTT(newXSize, make_pair(allMin, allMax))));
-                for (int i = 0; i < zSize; i++)
-                {
-                    for (int j = 0; j < ySize; j++)
-                    {
-                        for (int k = 0; k < xSize; k++)
-                        {
-                            auto &data = curMinMaxData[i >> 1][j >> 1][k >> 1];
-                            data.first = min(data.first, prev[i][j][k].first);
-                            data.second = max(data.second, prev[i][j][k].second);
-                        }
-                    }
-                }
-                minmaxData.emplace_back(vvvpTT());
-                minmaxData.back().swap(curMinMaxData);
-            }
-        }
-
-        // Build the minmax data
-        void buildSample(int inr_count)
+        void build(int inr_count,vector<vvvpTT> &minmaxDataSample)
         {
             /*
             *  If Float is preferred then use below
@@ -360,8 +277,8 @@ class RawModel
             name = modelName;
             shader = mainShader;
             loadModel(modelPath);
-            build();
-            buildSample(isoSkipValue);
+            build(1,minmaxData);
+            build(isoSkipValue,minmaxDataSample);
         }
 
         void render(function<void(Shader&)> f=[](Shader &shader){})
