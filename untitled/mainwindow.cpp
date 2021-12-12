@@ -31,6 +31,7 @@ void MainWindow::on_actionOpen_File_triggered()
     ui->openGLWidget->modelAvailable = true;
     ui->openGLWidget->repaint();
     ui->scrollAreaWidgetContents->setEnabled(true);
+    ui->groupBox_2->setEnabled(false);
 }
 
 void MainWindow::on_ISOSurfacesList_itemClicked(QListWidgetItem *item)
@@ -132,8 +133,10 @@ void MainWindow::on_addISOButton_clicked()
 
     updateProperties(id);
 
+    ui->groupBox_2->setEnabled(true);
     ui->openGLWidget->repaint();
 }
+
 
 
 void MainWindow::on_deleteISOButton_clicked()
@@ -169,8 +172,12 @@ void MainWindow::on_deleteISOButton_clicked()
         int id = windowState.getCurISOSurfaceID();
 
         updateProperties(id);
+        ui->groupBox_2->setEnabled(true);
     }
-    else windowState.setCurISOSurfaceItem(NULL);
+    else {
+        windowState.setCurISOSurfaceItem(NULL);
+        ui->groupBox_2->setEnabled(false);
+    }
 
     ui->openGLWidget->repaint();
 }
