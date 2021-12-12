@@ -39,6 +39,7 @@ void MainWindow::on_ISOSurfacesList_itemClicked(QListWidgetItem *item)
     ui->label->setText(item->text());
     int id = windowState.getCurISOSurfaceID();
     updateProperties(id);
+
 }
 
 void MainWindow::updateProperties(int i)
@@ -50,8 +51,10 @@ void MainWindow::updateProperties(int i)
     ui->ISOValue->setValue(isoSurface->getISOvalue());
     ui->opacityValue->setRange(0,100);
     ui->opacityValue->setValue(isoSurface->getOpacity());
-    if(isoSurface->shouldDisplay)
+    if(isoSurface->shouldDisplay){
         ui->enabledCheckBox->setCheckState(Qt::Checked);
+        ui->openGLWidget->repaint();
+    }
     else
         ui->enabledCheckBox->setCheckState(Qt::Unchecked);
 }
@@ -113,6 +116,12 @@ void MainWindow::on_addISOButton_clicked()
     ui->ISOSurfacesList->addItem("ISO Surface "+QString::number(windowState.nextISOSurfaceID));
     auto &rawModel = ui->openGLWidget->rawModel;
     rawModel.addISOSurface(windowState.nextISOSurfaceID++);
+    auto it = ui->ISOSurfacesList->item(ui->ISOSurfacesList->count()-1);
+    it->setSelected(true);
+    windowState.setCurISOSurfaceItem(it);
+    ui->label->setText(it->text());
+    int id = windowState.getCurISOSurfaceID();
+    updateProperties(id);
 }
 
 
@@ -122,7 +131,19 @@ void MainWindow::on_deleteISOButton_clicked()
     ui->openGLWidget->rawModel.removeISOSurface(id);
     auto it = ui->ISOSurfacesList->takeItem(ui->ISOSurfacesList->currentRow());
     delete it;
-    windowState.setCurISOSurfaceItem(NULL);
+    if(ui->ISOSurfacesList->count()>0)
+    {
+        auto it = ui->ISOSurfacesList->item(0);
+        it->setSelected(true);
+        windowState.setCurISOSurfaceItem(it);
+        ui->label->setText(it->text());
+        int id = windowState.getCurISOSurfaceID();
+        //auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+        updateProperties(id);
+    }
+    else{
+        windowState.setCurISOSurfaceItem(NULL);
+    }
 }
 
 
