@@ -51,14 +51,12 @@ class ISOSurface
     int inr_count = 1;
 
     vector<glm::vec3> adjacentIndices = {
-        {0,0-inr_count,0-inr_count},
-        {0,0,0-inr_count},
-        {0,0,0},
-        {0,0-inr_count,0},
-        {0-inr_count,0-inr_count,0-inr_count},
-        {0-inr_count,0,0-inr_count},
-        {0-inr_count,0,0},
-        {0-inr_count,0-inr_count,0}
+        {-inr_count, 0, 0},
+        {inr_count, 0, 0},
+        {0, -inr_count, 0},
+        {0, inr_count, 0},
+        {0, 0, -inr_count},
+        {0, 0, inr_count}
     };
 
 
@@ -103,6 +101,22 @@ class ISOSurface
         if ( val3 < iso) triindex |= 8;
 
         vector<glm::vec3> ans;
+        vector<glm::vec3> gradients;
+        glm::vec3 pos0Gradient = glm::vec3((getScalarFieldValue(pos0.x - 1, pos0.y, pos0.z) - getScalarFieldValue(pos0.x + 1, pos0.y, pos0.z)) / 2.0,
+                                           (getScalarFieldValue(pos0.x, pos0.y - 1, pos0.z) - getScalarFieldValue(pos0.x, pos0.y + 1, pos0.z)) / 2.0,
+                                           (getScalarFieldValue(pos0.x, pos0.y, pos0.z - 1) - getScalarFieldValue(pos0.x + 1, pos0.y, pos0.z + 1)) / 2.0);
+
+        glm::vec3 pos1Gradient = glm::vec3((getScalarFieldValue(pos1.x - 1, pos1.y, pos1.z) - getScalarFieldValue(pos1.x + 1, pos1.y, pos1.z)) / 2.0,
+                                           (getScalarFieldValue(pos1.x, pos1.y - 1, pos1.z) - getScalarFieldValue(pos1.x, pos1.y + 1, pos1.z)) / 2.0,
+                                           (getScalarFieldValue(pos1.x, pos1.y, pos1.z - 1) - getScalarFieldValue(pos1.x + 1, pos1.y, pos1.z + 1)) / 2.0);
+
+        glm::vec3 pos2Gradient = glm::vec3((getScalarFieldValue(pos2.x - 1, pos2.y, pos2.z) - getScalarFieldValue(pos2.x + 1, pos2.y, pos2.z)) / 2.0,
+                                           (getScalarFieldValue(pos2.x, pos2.y - 1, pos2.z) - getScalarFieldValue(pos2.x, pos2.y + 1, pos2.z)) / 2.0,
+                                           (getScalarFieldValue(pos2.x, pos2.y, pos2.z - 1) - getScalarFieldValue(pos2.x + 1, pos2.y, pos2.z + 1)) / 2.0);
+
+        glm::vec3 pos3Gradient = glm::vec3((getScalarFieldValue(pos3.x - 1, pos3.y, pos3.z) - getScalarFieldValue(pos3.x + 1, pos3.y, pos3.z)) / 2.0,
+                                           (getScalarFieldValue(pos3.x, pos3.y - 1, pos3.z) - getScalarFieldValue(pos3.x, pos3.y + 1, pos3.z)) / 2.0,
+                                           (getScalarFieldValue(pos3.x, pos3.y, pos3.z - 1) - getScalarFieldValue(pos3.x + 1, pos3.y, pos3.z + 1)) / 2.0);
 
         /* Form the vertices of the triangles for each case */
         switch (triindex) {
@@ -112,68 +126,130 @@ class ISOSurface
             case 0x0E:
             case 0x01:
                 ans.push_back( VertexInterp(iso,pos0,pos1,val0,val1) );
+                gradients.push_back((pos0Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos2,val0,val2) );
+                gradients.push_back((pos0Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos3,val0,val3) );
+                gradients.push_back((pos0Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x0D:
             case 0x02:
                 ans.push_back( VertexInterp(iso,pos1,pos0,val1,val0) );
+                gradients.push_back((pos1Gradient + pos0Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos3,val1,val3) );
+                gradients.push_back((pos1Gradient + pos3Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos2,val1,val2) );
+                gradients.push_back((pos1Gradient + pos2Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x0C:
             case 0x03:
                 ans.push_back( VertexInterp(iso,pos0,pos3,val0,val3) );
+                gradients.push_back((pos0Gradient + pos3Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos2,val0,val2) );
+                gradients.push_back((pos0Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos3,val1,val3) );
+                gradients.push_back((pos1Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 ans.push_back( VertexInterp(iso,pos1,pos3,val1,val3) );
+                gradients.push_back((pos1Gradient + pos3Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos2,val1,val2) );
+                gradients.push_back((pos1Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos2,val0,val2) );
+                gradients.push_back((pos0Gradient + pos2Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x0B:
             case 0x04:
                 ans.push_back( VertexInterp(iso,pos2,pos0,val2,val0) );
+                gradients.push_back((pos2Gradient + pos0Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos1,val2,val1) );
+                gradients.push_back((pos2Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos3,val2,val3) );
+                gradients.push_back((pos2Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x0A:
             case 0x05:
                 ans.push_back( VertexInterp(iso,pos0,pos1,val0,val1) );
+                gradients.push_back((pos0Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos3,val2,val3) );
+                gradients.push_back((pos2Gradient + pos3Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos3,val0,val3) );
+                gradients.push_back((pos0Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 ans.push_back( VertexInterp(iso,pos0,pos1,val0,val1) );
+                gradients.push_back((pos0Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos2,val1,val2) );
+                gradients.push_back((pos1Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos3,val2,val3) );
+                gradients.push_back((pos2Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x09:
             case 0x06:
                 ans.push_back( VertexInterp(iso,pos0,pos1,val0,val1) );
+                gradients.push_back((pos0Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos1,pos3,val1,val3) );
+                gradients.push_back((pos1Gradient + pos3Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos3,val2,val3) );
+                gradients.push_back((pos2Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 ans.push_back( VertexInterp(iso,pos0,pos1,val0,val1) );
+                gradients.push_back((pos0Gradient + pos1Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos0,pos2,val0,val2) );
+                gradients.push_back((pos0Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos2,pos3,val2,val3) );
+                gradients.push_back((pos2Gradient + pos3Gradient) / 2.0f);
+
                 ntri++;
                 break;
             case 0x07:
             case 0x08:
                 ans.push_back( VertexInterp(iso,pos3,pos0,val3,val0) );
+                gradients.push_back((pos3Gradient + pos0Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos3,pos2,val3,val2) );
+                gradients.push_back((pos3Gradient + pos2Gradient) / 2.0f);
+
                 ans.push_back( VertexInterp(iso,pos3,pos1,val3,val1) );
+                gradients.push_back((pos3Gradient + pos1Gradient) / 2.0f);
+
                 ntri++;
                 break;
         }
+        int index = 0;
         for(auto &tripos:ans)
         {
-            vertices.emplace_back(Vertex(glm::vec3(tripos.x/x,tripos.y/y,tripos.z/z)));
+            vertices.emplace_back(Vertex(glm::vec3(tripos.x/x,tripos.y/y,tripos.z/z), glm::vec3(1.0f), gradients[index]));
+            index++;
         }
     }
 
@@ -246,10 +322,17 @@ class ISOSurface
         }
     }
 
-    void computeGradients() {
-        //for(Vertex)
-    }
+//    void computeGradients() {
+//        for(Vertex &v : vertices) {
+//            float gx = getScalarFieldValue()
+//        }
+//    }
 
+
+    float getScalarFieldValue(int i, int j, int k) {
+        if(!(i >= 0 and i < x) or !(j >= 0 and j < y) or !(k >= 0 and k < z)) return 0;
+        return (*volume)[k][j][i];
+    }
 
     void marchingTetrahedraDomainSearch(bool useSample)
     {
