@@ -38,6 +38,7 @@ void MainWindow::on_actionOpen_File_triggered()
     }
 
     if(openFile) {
+        windowState.clear();
         ui->openGLWidget->setModelFile(fileName);
         ui->openGLWidget->modelAvailable = true;
         ui->openGLWidget->repaint();
@@ -205,6 +206,21 @@ void MainWindow::on_enabledCheckBox_clicked()
     if(isoSurface==0) return;
 
     isoSurface->toggleShouldDisplay();
+
+    ui->openGLWidget->repaint();
+}
+
+
+
+void MainWindow::on_colorMapCheckBox_clicked()
+{
+    int id = windowState.getCurISOSurfaceID();
+
+    auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+
+    if(isoSurface==0) return;
+
+    isoSurface->toggleColorMap();
 
     ui->openGLWidget->repaint();
 }

@@ -490,6 +490,11 @@ public:
         shouldDisplay=!shouldDisplay;
     }
 
+
+    void toggleColorMap() {
+        colorMap = 1 - colorMap;
+    }
+
     void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=false)
     {
         // build minmax tree

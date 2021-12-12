@@ -21,6 +21,13 @@ struct WindowState {
         auto id = curISOSurface->text().toStdString().substr(12);
         curISOSurfaceID = stoi(id);
     }
+    void clear() {
+        showBoundingBox = true;
+        ISOSurfaces.clear();
+        nextISOSurfaceID = 0;
+        curISOSurfaceID = -1;
+        curISOSurface = NULL;
+    }
     int getCurISOSurfaceID()
     {
         if(curISOSurface==NULL) return -1;

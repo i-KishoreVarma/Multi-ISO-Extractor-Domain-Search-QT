@@ -157,6 +157,19 @@
           <string>Enabled</string>
          </property>
         </widget>
+        <widget class="QCheckBox" name="colorMapCheckBox">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>60</y>
+           <width>91</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>ColorMap</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="geometry">
