@@ -50,6 +50,10 @@ void MainWindow::updateProperties(int i)
     ui->ISOValue->setValue(isoSurface->getISOvalue());
     ui->opacityValue->setRange(0,100);
     ui->opacityValue->setValue(isoSurface->getOpacity());
+    if(isoSurface->shouldDisplay)
+        ui->enabledCheckBox->setCheckState(Qt::Checked);
+    else
+        ui->enabledCheckBox->setCheckState(Qt::Unchecked);
 }
 
 void MainWindow::computeRunTimeISO(int position)
@@ -119,5 +123,16 @@ void MainWindow::on_deleteISOButton_clicked()
     auto it = ui->ISOSurfacesList->takeItem(ui->ISOSurfacesList->currentRow());
     delete it;
     windowState.setCurISOSurfaceItem(NULL);
+}
+
+
+void MainWindow::on_enabledCheckBox_clicked()
+{
+//    ui->label->setText("Clicked");
+    int id = windowState.getCurISOSurfaceID();
+    auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+    if(isoSurface==0) return;
+    isoSurface->toggleShouldDisplay();
+    ui->openGLWidget->repaint();
 }
 

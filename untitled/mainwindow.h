@@ -40,6 +40,9 @@ private slots:
     void on_addISOButton_clicked();
 
     void on_deleteISOButton_clicked();
+
+    void on_enabledCheckBox_clicked();
+
 public slots:
     void computeRunTimeISO(int position);
 private:

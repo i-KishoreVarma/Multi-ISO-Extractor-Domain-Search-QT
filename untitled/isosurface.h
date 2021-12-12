@@ -380,6 +380,11 @@ public:
         return ISOValue;
     }
 
+    void toggleShouldDisplay()
+    {
+        shouldDisplay=!shouldDisplay;
+    }
+
     void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=false)
     {
         // build minmax tree
