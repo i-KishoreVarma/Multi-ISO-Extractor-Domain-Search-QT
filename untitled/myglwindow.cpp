@@ -121,7 +121,7 @@ void MyGlWindow::paintGL()
     rawModel.ambientColor = glm::vec3(1.0, 1.0, 1.0);
     rawModel.diffuseColor = glm::vec3(1.0, 1.0, 1.0);
     rawModel.specularColor = glm::vec3(1.0, 1.0, 1.0);
-    rawModel.lightPosition = glm::vec3(355, 255, 255);
+    rawModel.lightPosition = glm::vec3(0, 0, 5);
     rawModel.viewPosition = camera.getPosition();
     rawModel.render([&](Shader& shader){
 
