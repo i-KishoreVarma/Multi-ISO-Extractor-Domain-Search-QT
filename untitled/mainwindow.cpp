@@ -23,15 +23,28 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_actionOpen_File_triggered()
 {
+    bool openFile = true;
     auto fileName = QFileDialog::getOpenFileName(this,
                                  tr("Open File"),
                                  "../untitled/models/",
                                  "All Files (*.*);;OFF file (*.off)");
-    ui->openGLWidget->setModelFile(fileName);
-    ui->openGLWidget->modelAvailable = true;
-    ui->openGLWidget->repaint();
-    ui->scrollAreaWidgetContents->setEnabled(true);
-    ui->groupBox_2->setEnabled(false);
+    auto fileNameSplitByDot = fileName.split(".");
+    if(fileNameSplitByDot.length() <= 1) {
+        openFile = false;
+    }
+    auto fileNameExtension = fileNameSplitByDot[1];
+    if(fileName.length() == 0 or fileNameExtension != "raw") {
+        openFile = false;
+    }
+
+    if(openFile) {
+        ui->openGLWidget->setModelFile(fileName);
+        ui->openGLWidget->modelAvailable = true;
+        ui->openGLWidget->repaint();
+        ui->scrollAreaWidgetContents->setEnabled(true);
+        ui->groupBox_2->setEnabled(false);
+    }
+
 }
 
 void MainWindow::on_ISOSurfacesList_itemClicked(QListWidgetItem *item)
