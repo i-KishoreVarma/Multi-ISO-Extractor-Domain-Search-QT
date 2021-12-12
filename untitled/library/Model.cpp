@@ -62,7 +62,7 @@ void Model::create(const string &modelName,const string &modelPath,bool useCommo
     BufferLayout layout;
 
     layout.addAttrib<float>(3);
-    // layout.addAttrib<float>(3);
+    layout.addAttrib<float>(3);
     // layout.addAttrib<float>(3);
     // layout.addAttrib<float>(2);
 
@@ -94,7 +94,7 @@ void Model::createEmpty()
     BufferLayout layout;
 
     layout.addAttrib<float>(3);
-    // layout.addAttrib<float>(3);
+    layout.addAttrib<float>(3);
     // layout.addAttrib<float>(3);
     // layout.addAttrib<float>(2);
 

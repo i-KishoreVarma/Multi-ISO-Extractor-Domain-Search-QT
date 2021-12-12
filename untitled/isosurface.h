@@ -50,6 +50,18 @@ class ISOSurface
 
     int inr_count = 1;
 
+    vector<glm::vec3> adjacentIndices = {
+        {0,0-inr_count,0-inr_count},
+        {0,0,0-inr_count},
+        {0,0,0},
+        {0,0-inr_count,0},
+        {0-inr_count,0-inr_count,0-inr_count},
+        {0-inr_count,0,0-inr_count},
+        {0-inr_count,0,0},
+        {0-inr_count,0-inr_count,0}
+    };
+
+
 
 
 
@@ -234,6 +246,11 @@ class ISOSurface
         }
     }
 
+    void computeGradients() {
+        //for(Vertex)
+    }
+
+
     void marchingTetrahedraDomainSearch(bool useSample)
     {
         // initialize cells to 0
@@ -247,7 +264,9 @@ class ISOSurface
             getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
         else
             getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
-        
+
+        computeGradients();
+
         vao.bind();
         vbo.bind();
         vbo.bufferData(vertices);
@@ -427,8 +446,14 @@ public:
 
         f();
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        //glEnableVertexAttribArray(2);
 
         if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArrays(GL_TRIANGLES,0,vertices.size());

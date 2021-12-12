@@ -42,15 +42,15 @@ struct Vertex {
         VertexTexture 0x4 
     */
     glm::vec3 position;
-    // glm::vec3 color;
-    // glm::vec3 normal;
+//     glm::vec3 color;
+     glm::vec3 normal;
     // glm::vec2 texture;
     Vertex(glm::vec3 Iposition = glm::vec3(0),glm::vec3 Icolor = glm::vec3(1),glm::vec3 Inormal = glm::vec3(0),glm::vec2 Itexture=glm::vec3(0)) 
     {
         position = Iposition ;
         // color = Icolor ;
         // texture = Itexture ;
-        // normal = Inormal;
+         normal = Inormal;
     }
     friend istream & operator >> (istream &in,  Vertex &c);
 };
