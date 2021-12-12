@@ -469,6 +469,8 @@ class RawModel
                  */
 
                 shader.setUniform1i("opacity",surface.opacity);
+                shader.setUniform1i("colorMap",surface.colorMap);
+
 
 
 
