@@ -55,6 +55,161 @@ class RawModel
             return false;
         }
 
+        void buildMultithreaded(int inr_count,vector<vvvpTT> &minmaxDataSample)
+        {
+            /*
+            *  If Float is preferred then use below
+            *
+            *  ISODataType allMin = + numeric_limits<ISODataType>::max();
+            *  ISODataType allMax = - numeric_limits<ISODataType>::max();
+            *
+            */
+
+            /* Adjacent Cells Info */
+            int ttxyz[8][3] = {
+                    {0, 0 - inr_count, 0 - inr_count},
+                    {0, 0, 0 - inr_count},
+                    {0, 0, 0},
+                    {0, 0 - inr_count, 0},
+                    {0 - inr_count, 0 - inr_count, 0 - inr_count},
+                    {0 - inr_count, 0, 0 - inr_count},
+                    {0 - inr_count, 0, 0},
+                    {0 - inr_count, 0 - inr_count, 0}
+            };
+            // clear previous contents
+            minmaxDataSample.clear();
+
+            ISODataType allMin =   INT_MAX;
+            ISODataType allMax =   INT_MIN;
+            //vvvpTT curMinMaxData(z - inr_count, vvpTT(y - inr_count, vpTT(x - inr_count)));
+            vvvpTT curMinMaxData(ceil(z/(1.0*inr_count))-1, vvpTT(ceil(y/(1.0*inr_count))-1, vpTT(ceil(x/(1.0*inr_count))-1)));
+
+
+            int noOfThreads = 4;
+            int workPerThread=z/(noOfThreads);
+            int curThread=0,curZ=0,lastZ=workPerThread*(noOfThreads);
+
+            auto threadHandler = [&](int threadi,int zb,int ze){
+//                zb = ceil((1.0*zb)/inr_count) * inr_count ;
+                zb = ((zb+inr_count)/inr_count)*inr_count;
+                for (int i = zb,ii=zb/inr_count-1; i < ze; i+=inr_count,ii++)
+                {
+                    for (int j = inr_count,jj=0; j < y; j+=inr_count,jj++)
+                    {
+                        for (int k = inr_count,kk=0; k < x; k+=inr_count,kk++)
+                        {
+                            ISODataType cur_min = allMin;
+                            ISODataType cur_max = allMax;
+                            for (auto &adjCell : ttxyz)
+                            {
+                                int zz = i + adjCell[0];
+                                int yy = j + adjCell[1];
+                                int xx = k + adjCell[2];
+                                if (isvalid(xx, yy, zz))
+                                {
+                                    cur_min = min((volume)[zz][yy][xx], cur_min);
+                                    cur_max = max((volume)[zz][yy][xx], cur_max);
+                                }
+                            }
+                            curMinMaxData[ii][jj][kk] = {cur_min, cur_max};
+                        }
+                    }
+                }
+            };
+
+            vector<std::thread> threads;
+
+            while(curZ<lastZ)
+            {
+                std::thread a(threadHandler,curThread,curZ,curZ+workPerThread);
+                threads.push_back(move(a));
+                curZ+=workPerThread;
+                curThread++;
+            }
+            threadHandler(curThread,lastZ,z);
+
+            for(auto &curThread:threads)
+            {
+                curThread.join();
+            }
+
+            minmaxDataSample.emplace_back(vvvpTT());
+            minmaxDataSample.back().swap(curMinMaxData);
+            while (1)
+            {
+                auto &prev = minmaxDataSample.back();
+                int zSize = prev.size();
+                int ySize = prev[0].size();
+                int xSize = prev[0][0].size();
+                int newZSize = (zSize + 1) / 2;
+                int newYSize = (ySize + 1) / 2;
+                int newXSize = (xSize + 1) / 2;
+
+                if (zSize == 1 && ySize == 1 && xSize == 1)
+                    break;
+
+                curMinMaxData.resize(newZSize, vvpTT(newYSize, vpTT(newXSize, make_pair(allMin, allMax))));
+
+                if(xSize*ySize*zSize<256)
+                {
+                    for (int i = 0; i < zSize; i++)
+                    {
+                        for (int j = 0; j < ySize; j++)
+                        {
+                            for (int k = 0; k < xSize; k++)
+                            {
+                                auto &data = curMinMaxData[i >> 1][j >> 1][k >> 1];
+                                data.first = min(data.first, prev[i][j][k].first);
+                                data.second = max(data.second, prev[i][j][k].second);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    int noOfThreads = 4;
+                    int workPerThread=zSize/(noOfThreads);
+                    int curThread=0,curZ=0,lastZ=workPerThread*(noOfThreads);
+
+                    auto threadHandler = [&](int threadi,int zb,int ze){
+                        for (int i = zb; i < ze; i++)
+                        {
+                            for (int j = 0; j < ySize; j++)
+                            {
+                                for (int k = 0; k < xSize; k++)
+                                {
+                                    auto &data = curMinMaxData[i >> 1][j >> 1][k >> 1];
+                                    data.first = min(data.first, prev[i][j][k].first);
+                                    data.second = max(data.second, prev[i][j][k].second);
+                                }
+                            }
+                        }
+                    };
+
+                    vector<std::thread> threads;
+
+                    while(curZ<lastZ)
+                    {
+                        std::thread a(threadHandler,curThread,curZ,curZ+workPerThread);
+                        threads.push_back(move(a));
+                        curZ+=workPerThread;
+                        curThread++;
+                    }
+                    threadHandler(curThread,lastZ,zSize);
+
+                    for(auto &curThread:threads)
+                    {
+                        curThread.join();
+                    }
+                }
+
+
+
+                minmaxDataSample.emplace_back(vvvpTT());
+                minmaxDataSample.back().swap(curMinMaxData);
+            }
+        }
+
         // Build the minmax data
         void build(int inr_count,vector<vvvpTT> &minmaxDataSample)
         {
@@ -276,8 +431,8 @@ class RawModel
             name = modelName;
             shader = mainShader;
             loadModel(modelPath);
-            build(1,minmaxData);
-            build(isoSkipValue,minmaxDataSample);
+            buildMultithreaded(1,minmaxData);
+            buildMultithreaded(isoSkipValue,minmaxDataSample);
         }
 
         void render(function<void(Shader&)> f=[](Shader &shader){})
