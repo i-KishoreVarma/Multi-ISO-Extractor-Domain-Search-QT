@@ -53,8 +53,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *e)
     {
         //camera.mouseUpdate(glm::vec2(e->x(),e->y()));
-        float dx = (e->pos().x()-lastPos.x())/30.0f;
-        float dy = (e->pos().y()-lastPos.y())/30.0f;
+        float dx = (e->pos().x()-lastPos.x())/100.0f;
+        float dy = (e->pos().y()-lastPos.y())/100.0f;
 
         // ...while the left button is presssed
        xRot -= dy;
