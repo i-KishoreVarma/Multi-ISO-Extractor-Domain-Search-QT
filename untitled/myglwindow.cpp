@@ -101,6 +101,9 @@ void MyGlWindow::paintGL()
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width() / (float)height(), 0.1f, 100.0f);
 
     glm::mat4 view = camera.getWorldToViewMatrix();
+    view = glm::rotate(view,xRot,glm::vec3(1.0f,0.0f,0.0f));
+    view = glm::rotate(view,yRot,glm::vec3(0.0f,1.0f,0.0f));
+    view = glm::rotate(view,zRot,glm::vec3(0.0f,0.0f,1.0f));
 
     cubeModel.World = projection * view * glm::translate(glm::vec3(-0.5,-0.5,-0.5)) ;
 

@@ -30,9 +30,14 @@ private:
 public:
     RawModel rawModel;
     Camera camera;
+    float xRot,yRot,zRot;
+    QPoint lastPos;
     MyGlWindow(QWidget *parent=0) : QOpenGLWidget(parent)
     {
         camera = Camera(glm::vec3(0.5f,0.5f,4.0f),glm::vec3(0.0f,0.0f,-1.0f));
+        xRot = 0.0f;
+        yRot = 0.0f;
+        zRot = 0.0f;
     }
 
     void setModelFile(QString &fileName);
@@ -47,7 +52,17 @@ protected:
     /* When mouse moved over OpenGL Widget */
     void mouseMoveEvent(QMouseEvent *e)
     {
-        camera.mouseUpdate(glm::vec2(e->x(),e->y()));
+        //camera.mouseUpdate(glm::vec2(e->x(),e->y()));
+        float dx = (e->pos().x()-lastPos.x())/30.0f;
+        float dy = (e->pos().y()-lastPos.y())/30.0f;
+
+        // ...while the left button is presssed
+       xRot -= dy;
+       yRot -= dx;
+
+            //set the rotations values appropriately (rotate the scene)
+            // using the values from the dx dy calculated from mouse positions.
+        lastPos = e->pos();
         repaint();
     }
 
@@ -81,10 +96,12 @@ protected:
     /* Mouse Click Event in OpenGL Widget */
     void mousePressEvent(QMouseEvent *e)
     {
+        lastPos = e->pos();
+        /*
         if(e->button()==Qt::NoButton)
             return;
         if(e->button()==Qt::LeftButton)
-            camera.firstClick = true;
+            camera.firstClick = true;*/
     }
 };
 
