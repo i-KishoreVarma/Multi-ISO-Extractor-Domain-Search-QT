@@ -348,7 +348,7 @@ class ISOSurface
         else
             getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
 
-        computeGradients();
+//        computeGradients();
 
         vao.bind();
         vbo.bind();
