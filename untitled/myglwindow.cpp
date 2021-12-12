@@ -118,7 +118,11 @@ void MyGlWindow::paintGL()
     });
 
     rawModel.World = projection * view * glm::translate(glm::vec3(-0.5,-0.5,-0.5));
-
+    rawModel.ambientColor = glm::vec3(1.0, 1.0, 1.0);
+    rawModel.diffuseColor = glm::vec3(1.0, 1.0, 1.0);
+    rawModel.specularColor = glm::vec3(1.0, 1.0, 1.0);
+    rawModel.lightPosition = glm::vec3(355, 255, 255);
+    rawModel.viewPosition = camera.getPosition();
     rawModel.render([&](Shader& shader){
 
         /*
@@ -129,7 +133,11 @@ void MyGlWindow::paintGL()
          */
 
         shader.setUniformMat4f("mvp",rawModel.World);
-
+        shader.setUniformVec3("ambientColor", rawModel.ambientColor);
+        shader.setUniformVec3("diffuseColor", rawModel.diffuseColor);
+        shader.setUniformVec3("specularColor", rawModel.specularColor);
+        shader.setUniformVec3("lightPosition", rawModel.lightPosition);
+        shader.setUniformVec3("viewPosition", rawModel.viewPosition);
         /* Per ISO Surface Properties need to be set in Render Funcion */
 
     });

@@ -260,6 +260,7 @@ class RawModel
         // Sampling
         int isoSkipValue = 4;
         glm::mat4 World;
+        glm::vec3 ambientColor, diffuseColor, specularColor, lightPosition, viewPosition;
 
         RawModel(const string &modelName="myModel")
         {
@@ -295,6 +296,8 @@ class RawModel
                  */
 
                 shader.setUniform1i("opacity",surface.opacity);
+
+
 
                 if(surface.shouldDisplay)
                     surface.render();
