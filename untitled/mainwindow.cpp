@@ -51,12 +51,8 @@ void MainWindow::updateProperties(int i)
     ui->ISOValue->setValue(isoSurface->getISOvalue());
     ui->opacityValue->setRange(0,100);
     ui->opacityValue->setValue(isoSurface->getOpacity());
-    if(isoSurface->shouldDisplay){
-        ui->enabledCheckBox->setCheckState(Qt::Checked);
-        ui->openGLWidget->repaint();
-    }
-    else
-        ui->enabledCheckBox->setCheckState(Qt::Unchecked);
+    if(isoSurface->shouldDisplay) ui->enabledCheckBox->setCheckState(Qt::Checked);
+    else ui->enabledCheckBox->setCheckState(Qt::Unchecked);
 }
 
 void MainWindow::computeRunTimeISO(int position)
@@ -113,47 +109,83 @@ void MainWindow::on_opacityValue_sliderReleased()
 
 void MainWindow::on_addISOButton_clicked()
 {
-    ui->ISOSurfacesList->addItem("ISO Surface "+QString::number(windowState.nextISOSurfaceID));
+    int nextISOSurfaceID = windowState.nextISOSurfaceID++;
+
+    ui->ISOSurfacesList->addItem("ISO Surface "+QString::number(nextISOSurfaceID));
+
     auto &rawModel = ui->openGLWidget->rawModel;
-    rawModel.addISOSurface(windowState.nextISOSurfaceID++);
+
+    rawModel.addISOSurface(nextISOSurfaceID);
+
+    // set newly added item as selected
     auto it = ui->ISOSurfacesList->item(ui->ISOSurfacesList->count()-1);
-    it->setSelected(true);
+
+    ui->ISOSurfacesList->setCurrentItem(it);
+
     windowState.setCurISOSurfaceItem(it);
+
     ui->label->setText(it->text());
+
     int id = windowState.getCurISOSurfaceID();
+
+    cout<< id<<'\n';
+
     updateProperties(id);
+
+    ui->openGLWidget->repaint();
 }
 
 
 void MainWindow::on_deleteISOButton_clicked()
 {
     int id = windowState.getCurISOSurfaceID();
+
+    if(id == -1)
+    {
+        cout<<"Delete is -1\n";
+        return;
+    }
+
     ui->openGLWidget->rawModel.removeISOSurface(id);
-    auto it = ui->ISOSurfacesList->takeItem(ui->ISOSurfacesList->currentRow());
+
+    int currentRow = ui->ISOSurfacesList->currentRow();
+
+    auto it = ui->ISOSurfacesList->takeItem(currentRow);
+
     delete it;
+
     if(ui->ISOSurfacesList->count()>0)
     {
-        auto it = ui->ISOSurfacesList->item(0);
-        it->setSelected(true);
+        currentRow = (currentRow)% (ui->ISOSurfacesList->count());
+
+        auto it = ui->ISOSurfacesList->item(currentRow);
+
+        ui->ISOSurfacesList->setCurrentRow(currentRow);
+
         windowState.setCurISOSurfaceItem(it);
+
         ui->label->setText(it->text());
+
         int id = windowState.getCurISOSurfaceID();
-        //auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+
         updateProperties(id);
     }
-    else{
-        windowState.setCurISOSurfaceItem(NULL);
-    }
+    else windowState.setCurISOSurfaceItem(NULL);
+
+    ui->openGLWidget->repaint();
 }
 
 
 void MainWindow::on_enabledCheckBox_clicked()
 {
-//    ui->label->setText("Clicked");
     int id = windowState.getCurISOSurfaceID();
+
     auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+
     if(isoSurface==0) return;
+
     isoSurface->toggleShouldDisplay();
+
     ui->openGLWidget->repaint();
 }
 
