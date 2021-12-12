@@ -239,8 +239,10 @@ class RawModel
             ISODataType allMax =   INT_MIN;
             //vvvpTT curMinMaxData(z - inr_count, vvpTT(y - inr_count, vpTT(x - inr_count)));
             vvvpTT curMinMaxData(ceil(z/(1.0*inr_count))-1, vvpTT(ceil(y/(1.0*inr_count))-1, vpTT(ceil(x/(1.0*inr_count))-1)));
-            for (int i = inr_count,ii=0; i < z; i+=inr_count,ii++)
+            #pragma omp parallel for
+            for (int i = inr_count; i < z; i+=inr_count)
             {
+                int ii = i/inr_count - 1;
                 for (int j = inr_count,jj=0; j < y; j+=inr_count,jj++)
                 {
                     for (int k = inr_count,kk=0; k < x; k+=inr_count,kk++)
@@ -278,6 +280,7 @@ class RawModel
                     break;
 
                 curMinMaxData.resize(newZSize, vvpTT(newYSize, vpTT(newXSize, make_pair(allMin, allMax))));
+                #pragma omp parallel for
                 for (int i = 0; i < zSize; i++)
                 {
                     for (int j = 0; j < ySize; j++)
@@ -434,14 +437,15 @@ class RawModel
             loadModel(modelPath);
             {
                 auto start = high_resolution_clock::now();
-                buildMultithreaded(1,minmaxData);
+                 build(1,minmaxData);
+                // build(1,minmaxData);
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<milliseconds>(stop - start);
                 cout << "Time Taken for build : " << duration.count() << endl;
             }
             {
                 auto start = high_resolution_clock::now();
-                buildMultithreaded(isoSkipValue,minmaxDataSample);
+                build(isoSkipValue,minmaxDataSample);
                 auto stop = high_resolution_clock::now();
                 auto duration = duration_cast<milliseconds>(stop - start);
                 cout << "Time Taken for build Sample : " << duration.count() << endl;
