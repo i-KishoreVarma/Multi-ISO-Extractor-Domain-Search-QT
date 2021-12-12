@@ -1,6 +1,13 @@
 #ifndef ISOSURFACE_H
 #define ISOSURFACE_H
 #include "library/MyLibrary.h"
+#include<thread>
+#include <chrono>
+using namespace std::chrono;
+
+#define TIME_NOW std::chrono::high_resolution_clock::now()
+#define TIME_DIFF(gran, start, end) std::chrono::duration_cast<milliseconds>(end - start).count()
+
 
 typedef int ISODataType;
 
@@ -27,7 +34,7 @@ class ISOSurface
 
     vvvT *volume = 0;
 
-    int isoSkipValue=1;
+    int isoSkipValue=4;
     
     /* Domain Search Tree */
     vector<vvvpTT> *minmaxData = 0,*minmaxDataSample = 0;
@@ -336,6 +343,34 @@ class ISOSurface
 
     void marchingTetrahedraDomainSearch(bool useSample)
     {
+            auto start = high_resolution_clock::now();
+
+        // initialize cells to 0
+        cellsCou = 0;
+
+        // clear vertices
+        vertices.clear();
+
+        // get All cells corresponding to given ISO Value
+        if(useSample)
+            getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
+        else
+            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
+
+//        computeGradients();
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        cout << "Time Taken for Tetrahedra : " << duration.count() << endl;
+
+        vao.bind();
+        vbo.bind();
+        vbo.bufferData(vertices);
+        vbo.unbind();
+        vao.unbind();
+    }
+
+    void marchingTetrahedraDomainSearchParallelized(bool useSample)
+    {
         // initialize cells to 0
         cellsCou = 0;
 
@@ -357,79 +392,79 @@ class ISOSurface
         vao.unbind();
     }
     
-    // void marchingTetrahedra(float isovalue=10.5)
-    // {
-    //     vertices.clear();
-    //     indices.clear();
+//     void marchingTetrahedra(float isovalue=10.5)
+//     {
+//         vertices.clear();
+//         indices.clear();
         
-    //     int noOfThreads = 4;
-    //     int workPerThread=z/noOfThreads;
-    //     int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
-    //     vector<Vertex> threadedVertices[noOfThreads+1];
+//         int noOfThreads = 4;
+//         int workPerThread=z/noOfThreads;
+//         int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
+//         vector<Vertex> threadedVertices[noOfThreads+1];
 
-    //     auto threadHandler = [&threadedVertices,&isovalue,this](int threadi,int zb,int ze){
-    //         glm::vec3 pos;
-    //         for(int k=zb;k<ze;k+=inr_count)
-    //         {
-    //             pos.z = k ;
-    //             for(int i=inr_count;i<y;i+=inr_count)
-    //             {
-    //                 pos.y = i;
-    //                 for(int j=inr_count;j<x;j+=inr_count)
-    //                 {
-    //                     pos.x = j;
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos);
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos);
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos);
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos);
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos);
-    //                     PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos);
-    //                 }
-    //             }
-    //         }
-    //     };
+//         auto threadHandler = [&threadedVertices,&isovalue,this](int threadi,int zb,int ze){
+//             glm::vec3 pos;
+//             for(int k=zb;k<ze;k+=inr_count)
+//             {
+//                 pos.z = k ;
+//                 for(int i=inr_count;i<y;i+=inr_count)
+//                 {
+//                     pos.y = i;
+//                     for(int j=inr_count;j<x;j+=inr_count)
+//                     {
+//                         pos.x = j;
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos);
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos);
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos);
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos);
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos);
+//                         PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos);
+//                     }
+//                 }
+//             }
+//         };
 
-    //     vector<std::thread> threads;
-    //     auto begin = TIME_NOW;
-    //     while(curZ<lastZ)
-    //     {
-    //         std::thread a(threadHandler,curThread,curZ+inr_count,curZ+workPerThread);
-    //         threads.push_back(move(a));
-    //         curZ+=workPerThread;
-    //         curThread++;
-    //     }
-    //     threadHandler(curThread,lastZ+inr_count,z);
+//         vector<std::thread> threads;
+//         auto begin = TIME_NOW;
+//         while(curZ<lastZ)
+//         {
+//             std::thread a(threadHandler,curThread,curZ+inr_count,curZ+workPerThread);
+//             threads.push_back(move(a));
+//             curZ+=workPerThread;
+//             curThread++;
+//         }
+//         threadHandler(curThread,lastZ+inr_count,z);
 
-    //     for(auto &curThread:threads)
-    //     {
-    //         curThread.join();
-    //     }
+//         for(auto &curThread:threads)
+//         {
+//             curThread.join();
+//         }
 
-    //     // reference(N, matA, matB, output_reference);
-    //     auto end = TIME_NOW;
-    //     cout << "Reference execution time: " << 
-    //     (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";    
-    //     vbo.bind();
-    //     vio.bind();
+//         // reference(N, matA, matB, output_reference);
+//         auto end = TIME_NOW;
+//         cout << "Reference execution time: " <<
+//         (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
+//         vbo.bind();
+//         vio.bind();
 
-    //     curNoOfVertices = 0;
-    //     for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
+//         curNoOfVertices = 0;
+//         for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
         
-    //     vbo.bufferData(curNoOfVertices);
+//         vbo.bufferData(curNoOfVertices);
 
-    //     int curOffset = 0;
+//         int curOffset = 0;
 
-    //     for(int i=0;i<=noOfThreads;i++) 
-    //     {
-    //         vbo.bufferSubData(threadedVertices[i],curOffset);
-    //         curOffset+=threadedVertices[i].size();
-    //     }
+//         for(int i=0;i<=noOfThreads;i++)
+//         {
+//             vbo.bufferSubData(threadedVertices[i],curOffset);
+//             curOffset+=threadedVertices[i].size();
+//         }
 
-    //     // vio.bufferData(indices);
+//         // vio.bufferData(indices);
 
-    //     vbo.unbind();
-    //     vio.unbind();
-    // }
+//         vbo.unbind();
+//         vio.unbind();
+//     }
 
 public:
 

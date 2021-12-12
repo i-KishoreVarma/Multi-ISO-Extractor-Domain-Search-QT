@@ -72,7 +72,7 @@ void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
 
-    QTimer::singleShot(500, [=]() { computeRunTimeISO(position); } );
+//    QTimer::singleShot(500, [=]() { computeRunTimeISO(position); } );
 
 }
 
