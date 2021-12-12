@@ -11,11 +11,11 @@
 #include<thread>
 #define DEBUG 1
 namespace fs = std::filesystem;
+#include <chrono>
+using namespace std::chrono;
 
 #define TIME_NOW std::chrono::high_resolution_clock::now()
-#define TIME_DIFF(gran, start, end) std::chrono::duration_cast<gran>(end - start).count()
-
-
+#define TIME_DIFF(gran, start, end) std::chrono::duration_cast<milliseconds>(end - start).count()
 
 typedef int ISODataType;
 
@@ -431,8 +431,22 @@ class RawModel
             name = modelName;
             shader = mainShader;
             loadModel(modelPath);
-            buildMultithreaded(1,minmaxData);
-            buildMultithreaded(isoSkipValue,minmaxDataSample);
+            {
+                auto start = high_resolution_clock::now();
+                buildMultithreaded(1,minmaxData);
+                auto stop = high_resolution_clock::now();
+                auto duration = duration_cast<milliseconds>(stop - start);
+                cout << "Time Taken for build : " << duration.count() << endl;
+            }
+            {
+                auto start = high_resolution_clock::now();
+                buildMultithreaded(isoSkipValue,minmaxDataSample);
+                auto stop = high_resolution_clock::now();
+                auto duration = duration_cast<milliseconds>(stop - start);
+                cout << "Time Taken for build Sample : " << duration.count() << endl;
+            }
+            
+            
         }
 
         void render(function<void(Shader&)> f=[](Shader &shader){})
