@@ -5,6 +5,7 @@
 #include <QListWidgetItem>
 #include <QTimer>
 #include "WindowState.h"
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,6 +19,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     WindowState windowState;
+    bool toggleContinuousISO = false;
+    chrono::steady_clock::time_point tp ;
     QTimer* timer;
     void updateProperties(int i);
 
@@ -40,6 +43,8 @@ private slots:
     void on_addISOButton_clicked();
 
     void on_deleteISOButton_clicked();
+
+    void on_continuousISOCheckBox_clicked();
 
     void on_enabledCheckBox_clicked();
 
