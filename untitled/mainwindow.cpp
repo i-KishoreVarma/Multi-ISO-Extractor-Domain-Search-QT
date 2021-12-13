@@ -81,21 +81,30 @@ void MainWindow::computeRunTimeISO(int position)
 }
 
 
+
 void MainWindow::on_ISOValue_sliderMoved(int position)
 {
     ui->label->setText(QString::number(position));
+    if(toggleContinuousISO){
+        auto tm = chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tp).count()/25000;
+        //cout<<tm<<"\n";
+        if(tm>10){
 
-//    QTimer::singleShot(500, [=]() { computeRunTimeISO(position); } );
-
+            computeRunTimeISO(position);
+            tp = chrono::steady_clock::now();
+        }
+    }
 }
 
 void MainWindow::on_ISOValue_sliderPressed()
 {
+    tp = chrono::steady_clock::now();
 //    ui->label->setText("Pressed");
 }
 
 void MainWindow::on_ISOValue_sliderReleased()
 {
+    tp = chrono::steady_clock::time_point();
     int id = windowState.getCurISOSurfaceID();
     auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
     if(isoSurface==0) return;
@@ -209,3 +218,13 @@ void MainWindow::on_enabledCheckBox_clicked()
     ui->openGLWidget->repaint();
 }
 
+void MainWindow::on_continuousISOCheckBox_clicked()
+{
+    int id = windowState.getCurISOSurfaceID();
+
+    auto isoSurface = ui->openGLWidget->rawModel.getISOSurface(id);
+
+    if(isoSurface==0) return;
+
+    this->toggleContinuousISO = !(this->toggleContinuousISO);
+}
