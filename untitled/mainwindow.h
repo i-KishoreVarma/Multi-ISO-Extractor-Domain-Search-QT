@@ -48,6 +48,10 @@ private slots:
 
     void on_enabledCheckBox_clicked();
 
+
+
+    void on_colorMapCheckBox_clicked();
+
 public slots:
     void computeRunTimeISO(int position);
 private:

@@ -48,6 +48,7 @@ class ISOSurface
     float ISOValue;
 
     int opacity;
+    int colorMap;
 
     vector<Vertex> vertices;
     vector<uint> indices;
@@ -535,6 +536,7 @@ public:
         y = 0;
         x = 0;
         opacity = 100;
+        colorMap = 0;
         meshMode = false;
     }
 
@@ -551,6 +553,7 @@ public:
         y = Volume[0].size();
         x = Volume[0][0].size();
         opacity = 100;
+        colorMap = 0;
         meshMode = false;
 
         vao.create();
@@ -579,6 +582,11 @@ public:
         shouldDisplay=!shouldDisplay;
     }
 
+
+    void toggleColorMap() {
+        colorMap = 1 - colorMap;
+    }
+
     void setISOValue(float ISOValueIn,bool useISOValueIn=true,bool useSample=false)
     {
         // build minmax tree
@@ -603,6 +611,15 @@ public:
     void setOpacity(int opacityIn)
     {
         opacity = opacityIn;
+    }
+
+
+    int getColorMap() {
+        return colorMap;
+    }
+
+    void setColorMap(int colorMapIn) {
+        colorMap = colorMapIn;
     }
 
     pTT getMinMax(bool useSample=false)

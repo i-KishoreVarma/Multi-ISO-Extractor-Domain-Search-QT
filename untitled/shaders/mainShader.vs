@@ -7,6 +7,9 @@ out vec3 FNormal;
 out vec4 FColor;
 out vec3 FragPos;
 
+
+uniform int colorMap;
+
 uniform mat4 mvp;
 
 vec4 arr[47] = {
@@ -59,12 +62,16 @@ vec4 arr[47] = {
     vec4(1,0.188235294117647,0,0.0705882352941176)
 };
 
-vec4 getColor(float z){
-    for(int i=0;i<47;i++)
-    {
-        if(z<=arr[i][0]) return arr[i];
+vec4 getColor(float z){    
+    if(colorMap == 1) {
+        for(int i=0;i<47;i++)
+        {
+            if(z<=arr[i][0]) return arr[i];
+        }
+    } else {
+        return vec4(1.0, 1.0, 1.0, 1.0);
     }
-    return vec4(1.0,1.0,1.0,1.0);
+//    return vec4(1.0,1.0,1.0,1.0);
 }
 void main()
 {
