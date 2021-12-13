@@ -2,6 +2,7 @@
 #define ISOSURFACE_H
 #include "library/MyLibrary.h"
 #include<thread>
+#include<queue>
 #include <chrono>
 using namespace std::chrono;
 
@@ -279,7 +280,7 @@ class ISOSurface
         return p;
     }
 
-    void getCells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val,vector<vvvpTT> &mnmxData,bool useSample)
+    void getCells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val, vector<Vertex> &vertices, vector<vvvpTT> &mnmxData,bool useSample)
     {
         if(useSample)
             inr_count = isoSkipValue;
@@ -325,7 +326,7 @@ class ISOSurface
             xx = x2 + ((i&1)>>0); 
             yy = y2 + ((i&2)>>1); 
             zz = z2 + ((i&4)>>2);
-            getCells(nextLevel,zz,yy,xx,val,mnmxData,useSample);
+            getCells(nextLevel,zz,yy,xx,val,vertices,mnmxData,useSample);
         }
     }
 
@@ -343,7 +344,6 @@ class ISOSurface
 
     void marchingTetrahedraDomainSearch(bool useSample)
     {
-            auto start = high_resolution_clock::now();
 
         // initialize cells to 0
         cellsCou = 0;
@@ -353,20 +353,77 @@ class ISOSurface
 
         // get All cells corresponding to given ISO Value
         if(useSample)
-            getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
+            getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,vertices,*minmaxDataSample,useSample);
         else
-            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
+            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,vertices,*minmaxData,useSample);
 
 //        computeGradients();
-        auto stop = high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(stop - start);
-        cout << "Time Taken for Tetrahedra : " << duration.count() << endl;
 
         vao.bind();
         vbo.bind();
         vbo.bufferData(vertices);
         vbo.unbind();
         vao.unbind();
+    }
+
+    void get4Cells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val,vector<vvvpTT> &mnmxData,bool useSample)
+    {
+        vector<Vertex> vertexPerThread[4];
+        auto threadHandler = [&](int threadi,int z,int y,int x){
+            getCells(level-1,z,y,x,val,vertexPerThread[threadi],mnmxData,useSample);
+            getCells(level-1,z,y,x+1,val,vertexPerThread[threadi],mnmxData,useSample);
+        };
+
+        vector<std::thread> threads;
+
+        queue<glm::vec3> q;
+
+        int xx, yy, zz;
+        int x2 = x<<1, y2 = y << 1, z2 = z << 1;
+        int curThread = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            xx = x2;
+            yy = y2 + ((i&1)>>0);
+            zz = z2 + ((i&2)>>1);
+            q.push({xx,yy,zz});
+        }
+
+        while(!q.empty())
+        {
+            auto tmp = q.front();
+            q.pop();
+            std::thread a(threadHandler,curThread,tmp.z,tmp.y,tmp.x);
+            threads.push_back(move(a));
+            curThread++;
+        }
+
+
+        for(auto &curThread:threads)
+        {
+            curThread.join();
+        }
+
+        int no_of_elements = 0;
+
+        for(auto &tt:vertexPerThread)
+        {
+            no_of_elements+= tt.size();
+        }
+
+        vertices.resize(no_of_elements);
+
+
+        #pragma omp parallel for
+        for(int i=0;i<4;i++)
+        {
+            int prev_size = 0;
+            for(int j=0;j<i;j++) prev_size+=vertexPerThread[j].size();
+            auto &vv = vertexPerThread[i];
+            for(int j=0;j<vertexPerThread[i].size();j++)
+                vertices[prev_size+j] = vv[j];
+        }
+
     }
 
     void marchingTetrahedraDomainSearchParallelized(bool useSample)
@@ -379,9 +436,9 @@ class ISOSurface
 
         // get All cells corresponding to given ISO Value
         if(useSample)
-            getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
+            get4Cells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,*minmaxDataSample,useSample);
         else
-            getCells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
+            get4Cells(int((*minmaxData).size())-1,0,0,0,ISOValue,*minmaxData,useSample);
 
 //        computeGradients();
 
@@ -531,7 +588,11 @@ public:
             auto tmpMinMax = getMinMax(useSample);
             ISOValue = (tmpMinMax.first+tmpMinMax.second)/2;
         }
-        marchingTetrahedraDomainSearch(useSample);
+        auto start = high_resolution_clock::now();
+        marchingTetrahedraDomainSearchParallelized(useSample);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        cout << "Time Taken for Tetrahedra Parllelized "<< ISOValue << " : " << duration.count() << endl;
     }
 
     int getOpacity()
