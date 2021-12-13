@@ -54,12 +54,12 @@ void Camera::moveBackward()
 
 void Camera::strafeLeft()
 {
-	position += -MOVEMENT_SPEED * strafeDirection;
+	position += MOVEMENT_SPEED * glm::vec3(-1,0,0);
 }
 
 void Camera::strafeRight()
 {
-	position += MOVEMENT_SPEED * strafeDirection;
+	position += -MOVEMENT_SPEED * glm::vec3(-1,0,0);
 }
 
 void Camera::moveUp()
