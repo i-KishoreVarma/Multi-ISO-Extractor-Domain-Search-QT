@@ -460,61 +460,61 @@ class ISOSurface
 //        vao.unbind();
     }
     
-     void marchingTetrahedra(float isovalue=10.5,bool useSample=false)
-     {
-         vertices.clear();
-         indices.clear();
+//     void marchingTetrahedra(float isovalue=10.5,bool useSample=false)
+//     {
+//         vertices.clear();
+//         indices.clear();
 
-         curNoOfVertices = 0;
+//         curNoOfVertices = 0;
         
-         int noOfThreads = 4;
-         int workPerThread=z/noOfThreads;
-         int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
-         vector<Vertex> threadedVertices[noOfThreads];
+//         int noOfThreads = 4;
+//         int workPerThread=z/noOfThreads;
+//         int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
+//         vector<Vertex> threadedVertices[noOfThreads];
 
-         #pragma omp parallel for num_threads(4)
-         for(int k=inr_count;k<z;k+=inr_count)
-         {
-             glm::vec3 pos;
-             pos.z = k ;
-            //  int threadi = omp_get_thread_num();
-             for(int i=inr_count;i<y;i+=inr_count)
-             {
-                 pos.y = i;
-                 for(int j=inr_count;j<x;j+=inr_count)
-                 {
-                     pos.x = j;
-                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos,useSample);
-                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos,useSample);
-                     PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos,useSample);
-                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos,useSample);
-                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos,useSample);
-                     PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos,useSample);
-                 }
-             }
-         }
+//         #pragma omp parallel for num_threads(4)
+//         for(int k=inr_count;k<z;k+=inr_count)
+//         {
+//             glm::vec3 pos;
+//             pos.z = k ;
+//            //  int threadi = omp_get_thread_num();
+//             for(int i=inr_count;i<y;i+=inr_count)
+//             {
+//                 pos.y = i;
+//                 for(int j=inr_count;j<x;j+=inr_count)
+//                 {
+//                     pos.x = j;
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos,useSample);
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos,useSample);
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos,useSample);
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos,useSample);
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos,useSample);
+//                     PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos,useSample);
+//                 }
+//             }
+//         }
 
-         vbo.bind();
-         vio.bind();
+//         vbo.bind();
+//         vio.bind();
 
 
-         for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
+//         for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
         
-         vbo.bufferData(curNoOfVertices);
+//         vbo.bufferData(curNoOfVertices);
 
-         int curOffset = 0;
+//         int curOffset = 0;
 
-         for(int i=0;i<4;i++)
-         {
-             vbo.bufferSubData(threadedVertices[i],curOffset);
-             curOffset+=threadedVertices[i].size();
-         }
+//         for(int i=0;i<4;i++)
+//         {
+//             vbo.bufferSubData(threadedVertices[i],curOffset);
+//             curOffset+=threadedVertices[i].size();
+//         }
 
-         // vio.bufferData(indices);
+//         // vio.bufferData(indices);
 
-         vbo.unbind();
-         vio.unbind();
-     }
+//         vbo.unbind();
+//         vio.unbind();
+//     }
 
 public:
 
