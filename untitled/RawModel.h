@@ -411,7 +411,7 @@ class RawModel
         
 
         // Sampling
-        int isoSkipValue = 8;
+        int isoSkipValue = 4;
         glm::mat4 World;
         glm::vec3 ambientColor, diffuseColor, specularColor, lightPosition, viewPosition;
 
