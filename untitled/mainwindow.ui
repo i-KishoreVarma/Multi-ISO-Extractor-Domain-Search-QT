@@ -157,7 +157,7 @@
           <string>Enabled</string>
          </property>
         </widget>
-         <widget class="QCheckBox" name="colorMapCheckBox">
+        <widget class="QCheckBox" name="colorMapCheckBox">
          <property name="geometry">
           <rect>
            <x>80</x>
@@ -170,7 +170,6 @@
           <string>ColorMap</string>
          </property>
         </widget>
-       </widget>
         <widget class="QCheckBox" name="continuousISOCheckBox">
          <property name="geometry">
           <rect>
