@@ -594,7 +594,7 @@ public:
         // marchingTetrahedra(useSample);
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(stop - start);
-        cout << "Time Taken for Tetrahedra Parllelized "<< ISOValue << " : " << duration.count() << endl;
+        cout << "Time Taken for Tetrahedra Parllelized "<< ISOValue << " : " << duration.count() << '\n';
     }
 
     int getOpacity()
