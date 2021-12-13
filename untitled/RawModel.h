@@ -11,11 +11,6 @@
 #include<thread>
 #define DEBUG 1
 namespace fs = std::filesystem;
-#include <chrono>
-using namespace std::chrono;
-
-#define TIME_NOW std::chrono::high_resolution_clock::now()
-#define TIME_DIFF(gran, start, end) std::chrono::duration_cast<milliseconds>(end - start).count()
 
 typedef int ISODataType;
 
