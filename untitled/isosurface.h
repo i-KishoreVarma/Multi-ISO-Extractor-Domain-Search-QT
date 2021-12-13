@@ -1,6 +1,7 @@
 #ifndef ISOSURFACE_H
 #define ISOSURFACE_H
 #include "library/MyLibrary.h"
+// #include <omp.h>
 #include<thread>
 #include<queue>
 #include <chrono>
@@ -58,6 +59,8 @@ class ISOSurface
     bool meshMode;
 
     int inr_count = 1;
+
+    int curNoOfVertices = 0;
 
     vector<glm::vec3> adjacentIndices = {
         {-inr_count, 0, 0},
@@ -352,6 +355,8 @@ class ISOSurface
         // clear vertices
         vertices.clear();
 
+        curNoOfVertices = 0;
+
         // get All cells corresponding to given ISO Value
         if(useSample)
             getCells(int((*minmaxDataSample).size())-1,0,0,0,ISOValue,vertices,*minmaxDataSample,useSample);
@@ -365,10 +370,15 @@ class ISOSurface
         vbo.bufferData(vertices);
         vbo.unbind();
         vao.unbind();
+
+        curNoOfVertices = vertices.size();
     }
 
     void get4Cells(unsigned int level,unsigned int z, unsigned int y,unsigned int x, float val,vector<vvvpTT> &mnmxData,bool useSample)
     {
+
+        curNoOfVertices = 0;
+
         vector<Vertex> vertexPerThread[4];
         auto threadHandler = [&](int threadi,int z,int y,int x){
             getCells(level-1,z,y,x,val,vertexPerThread[threadi],mnmxData,useSample);
@@ -405,25 +415,25 @@ class ISOSurface
             curThread.join();
         }
 
-        int no_of_elements = 0;
-
         for(auto &tt:vertexPerThread)
         {
-            no_of_elements+= tt.size();
+            curNoOfVertices+= tt.size();
         }
 
-        vertices.resize(no_of_elements);
+        vbo.bind();
 
+        vbo.bufferData(curNoOfVertices);
 
-        #pragma omp parallel for
+        int curOffset = 0;
+
+//        #pragma omp parallel for
         for(int i=0;i<4;i++)
         {
-            int prev_size = 0;
-            for(int j=0;j<i;j++) prev_size+=vertexPerThread[j].size();
-            auto &vv = vertexPerThread[i];
-            for(int j=0;j<vertexPerThread[i].size();j++)
-                vertices[prev_size+j] = vv[j];
+            vbo.bufferSubData(vertexPerThread[i],curOffset);
+            curOffset+=vertexPerThread[i].size();
         }
+
+        vbo.unbind();
 
     }
 
@@ -443,86 +453,68 @@ class ISOSurface
 
 //        computeGradients();
 
-        vao.bind();
-        vbo.bind();
-        vbo.bufferData(vertices);
-        vbo.unbind();
-        vao.unbind();
+//        vao.bind();
+//        vbo.bind();
+//        vbo.bufferData(vertices);
+//        vbo.unbind();
+//        vao.unbind();
     }
     
-//     void marchingTetrahedra(float isovalue=10.5)
-//     {
-//         vertices.clear();
-//         indices.clear();
+     void marchingTetrahedra(float isovalue=10.5,bool useSample=false)
+     {
+         vertices.clear();
+         indices.clear();
+
+         curNoOfVertices = 0;
         
-//         int noOfThreads = 4;
-//         int workPerThread=z/noOfThreads;
-//         int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
-//         vector<Vertex> threadedVertices[noOfThreads+1];
+         int noOfThreads = 4;
+         int workPerThread=z/noOfThreads;
+         int curThread=0,curZ=0,lastZ=workPerThread*noOfThreads;
+         vector<Vertex> threadedVertices[noOfThreads];
 
-//         auto threadHandler = [&threadedVertices,&isovalue,this](int threadi,int zb,int ze){
-//             glm::vec3 pos;
-//             for(int k=zb;k<ze;k+=inr_count)
-//             {
-//                 pos.z = k ;
-//                 for(int i=inr_count;i<y;i+=inr_count)
-//                 {
-//                     pos.y = i;
-//                     for(int j=inr_count;j<x;j+=inr_count)
-//                     {
-//                         pos.x = j;
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos);
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos);
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos);
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos);
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos);
-//                         PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos);
-//                     }
-//                 }
-//             }
-//         };
+         #pragma omp parallel for num_threads(4)
+         for(int k=inr_count;k<z;k+=inr_count)
+         {
+             glm::vec3 pos;
+             pos.z = k ;
+            //  int threadi = omp_get_thread_num();
+             for(int i=inr_count;i<y;i+=inr_count)
+             {
+                 pos.y = i;
+                 for(int j=inr_count;j<x;j+=inr_count)
+                 {
+                     pos.x = j;
+                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,3,7,pos,useSample);
+                     PolygoniseTri(threadedVertices[threadi],isovalue,0,2,6,7,pos,useSample);
+                     PolygoniseTri(threadedVertices[threadi],isovalue,0,4,6,7,pos,useSample);
+                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,2,pos,useSample);
+                     PolygoniseTri(threadedVertices[threadi],isovalue,0,6,1,4,pos,useSample);
+                     PolygoniseTri(threadedVertices[threadi],isovalue,5,6,1,4,pos,useSample);
+                 }
+             }
+         }
 
-//         vector<std::thread> threads;
-//         auto begin = TIME_NOW;
-//         while(curZ<lastZ)
-//         {
-//             std::thread a(threadHandler,curThread,curZ+inr_count,curZ+workPerThread);
-//             threads.push_back(move(a));
-//             curZ+=workPerThread;
-//             curThread++;
-//         }
-//         threadHandler(curThread,lastZ+inr_count,z);
+         vbo.bind();
+         vio.bind();
 
-//         for(auto &curThread:threads)
-//         {
-//             curThread.join();
-//         }
 
-//         // reference(N, matA, matB, output_reference);
-//         auto end = TIME_NOW;
-//         cout << "Reference execution time: " <<
-//         (double)TIME_DIFF(std::chrono::microseconds, begin, end) / 1000.0 << " ms\n";
-//         vbo.bind();
-//         vio.bind();
-
-//         curNoOfVertices = 0;
-//         for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
+         for(auto &vertices:threadedVertices) curNoOfVertices+=vertices.size();
         
-//         vbo.bufferData(curNoOfVertices);
+         vbo.bufferData(curNoOfVertices);
 
-//         int curOffset = 0;
+         int curOffset = 0;
 
-//         for(int i=0;i<=noOfThreads;i++)
-//         {
-//             vbo.bufferSubData(threadedVertices[i],curOffset);
-//             curOffset+=threadedVertices[i].size();
-//         }
+         for(int i=0;i<4;i++)
+         {
+             vbo.bufferSubData(threadedVertices[i],curOffset);
+             curOffset+=threadedVertices[i].size();
+         }
 
-//         // vio.bufferData(indices);
+         // vio.bufferData(indices);
 
-//         vbo.unbind();
-//         vio.unbind();
-//     }
+         vbo.unbind();
+         vio.unbind();
+     }
 
 public:
 
@@ -597,7 +589,9 @@ public:
             ISOValue = (tmpMinMax.first+tmpMinMax.second)/2;
         }
         auto start = high_resolution_clock::now();
-        marchingTetrahedraDomainSearchParallelized(useSample);
+       marchingTetrahedraDomainSearchParallelized(useSample);
+//        marchingTetrahedraDomainSearch(useSample);
+        // marchingTetrahedra(useSample);
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(stop - start);
         cout << "Time Taken for Tetrahedra Parllelized "<< ISOValue << " : " << duration.count() << endl;
@@ -652,7 +646,7 @@ public:
         //glEnableVertexAttribArray(2);
 
         if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDrawArrays(GL_TRIANGLES,0,vertices.size());
+        glDrawArrays(GL_TRIANGLES,0,curNoOfVertices);
         if(meshMode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         ErrorHandler();
